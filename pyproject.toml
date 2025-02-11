@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "chemdoe"
+version = "0.1.0"
+description = ""
+authors = ["Martin <m.starman@live.comdd>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+tk = "^0.1.0"
+chemotion-api = "^0.3.43"
+platformdirs = "^4.3.6"
+requests = "^2.32.3"
+beautifulsoup4 = "^4.13.3"
+pillow = "^11.1.0"
+cairosvg = "^2.7.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
