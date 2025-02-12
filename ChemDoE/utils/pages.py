@@ -2,7 +2,6 @@ from tkinter import ttk
 import tkinter as tk
 from typing import Optional
 
-from PIL import ImageTk, Image
 from chemotion_api import Instance
 
 from ChemDoE.config import ConfigManager
