@@ -61,8 +61,10 @@ class PageManager:
         style.map("TEntry", fieldbackground=[("focus", "white"), ("!focus", "lightgray")])
 
         if self.page:
+            self.page.is_visible = False
             self.page.leave()
         self.page = page
+        self.page.is_visible = True
         page.page_manager = self
 
         self._clear_frame()
@@ -78,6 +80,7 @@ class PageManager:
 class Page(ABC):
 
     def __init__(self):
+        self.is_visible = False
         self._page_manager: Optional[PageManager] = None
 
     def leave(self):

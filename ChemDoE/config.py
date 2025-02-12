@@ -2,7 +2,6 @@ import configparser
 import os.path
 from pathlib import Path
 
-from PIL.ImageOps import expand
 from platformdirs import user_config_dir
 
 config_dir = Path(user_config_dir("ChemDoE"))
