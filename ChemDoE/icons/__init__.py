@@ -1,8 +1,55 @@
+import itertools
 import os
-
+import tkinter as tk
 from PIL import Image, ImageTk
 
 __all__ = ['IconManager']
+
+class LoadingGIF:
+    def __init__(self, root, gif_path):
+        self.root = root
+        self.gif_path = gif_path
+
+        # Load the GIF
+        self.image = Image.open(self.gif_path)
+        self.frames = []
+        self._call_id = None
+
+        # Extract all frames
+        try:
+            while True:
+                frame = self.image.copy()  # Copy current frame
+                self.frames.append(ImageTk.PhotoImage(frame))
+                self.image.seek(len(self.frames))  # Move to next frame
+        except EOFError:
+            pass  # End of frames
+
+        self.current_frame = itertools.cycle(self.frames)
+
+        # Display first frame
+        self.labels = []
+
+    def add_label(self, label: tk.Widget):
+        l = tk.Label(label)
+        l.pack()
+        self.labels.append(l)
+        return l
+
+    def _animate(self):
+        """Update the GIF frame repeatedly"""
+        self.labels = [l for l in self.labels if l.winfo_ismapped()]
+        for l in self.labels:
+            l.config(image=next(self.current_frame))
+        self._call_id =  self.root.after(20, self._animate)  #  Adjust delay based on GIF speed
+
+    def start(self):
+        self._animate()
+
+    def stop(self):
+        self.root.after_cancel(self._call_id)
+        for l in self.labels:
+            l.destroy()
+
 
 
 class IconManager():
