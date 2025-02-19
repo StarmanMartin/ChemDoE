@@ -29,8 +29,7 @@ jobs:
 
       - name: Build Executable with PyInstaller
         run: |
-          poetry run pyinstaller --clean --noconfirm --noconsole ChemDoE.spec
-
+          poetry run pyinstaller --clean --noconfirm ChemDoE.spec
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
