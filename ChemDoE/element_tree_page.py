@@ -13,7 +13,7 @@ from ChemDoE.utils.keyboard_shortcuts import add_placeholder
 
 
 class ElementTreePage(ToolBarPage):
-    number_of_elements_per_page = 20
+    number_of_elements_per_page = 10
     search_placeholder = "Enter search text..."
 
     class TreeElement:
@@ -23,7 +23,11 @@ class ElementTreePage(ToolBarPage):
 
     class TreeElementElement(TreeElement):
         def __init__(self, rea: Sample | Reaction):
-            super().__init__(f"{rea.short_label}: {rea.name}")
+            if isinstance(rea, Sample):
+                super().__init__(f"{rea.short_label}: {rea.molecule['cano_smiles']}")
+            else:
+                super().__init__(f"{rea.short_label}: {rea.name}")
+
             self.rea = rea
 
 
@@ -150,7 +154,7 @@ class ElementTreePage(ToolBarPage):
 
             if not self.is_visible:
                 return
-            to_rem = self.collection_tree.insert(te.tree_node, 0, text='..LOADING..', values=("", ""))
+            self.collection_tree.item(te.tree_node, text=te.title + " ⏳")
             end_length = min(all_elements, current_length + self.number_of_elements_per_page)
             for i in range(current_length, end_length):
                 if not self.is_visible:
@@ -163,10 +167,15 @@ class ElementTreePage(ToolBarPage):
                                                 image=icon,
                                                 values=(str(re.rea.id), "Element"))
                 self.page_manager.root.after(0, add_node, re, te)
-            self.page_manager.root.after(0, self.collection_tree.delete, to_rem)
-            return len(te.elements) < all_elements
+
+            if self.is_visible:
+                self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title ), te)
+            if len(te.elements) < all_elements:
+                self.collection_tree.insert(te.tree_node, "end", text="...Load more...", open=False,
+                                            image=icon,
+                                            values=(str(te.col.id), "LOAD"))
         except tk.TclError:
-            return False
+            return
 
 
     def _on_open(self, event):
@@ -190,7 +199,13 @@ class ElementTreePage(ToolBarPage):
         item = self.collection_tree.focus()  # Get currently opened item
         self._load_on_open(item)
         vals = self.collection_tree.item(item, 'values')
-        if vals[1] == 'NewElement':
+        if len(vals) < 2:
+            return
+        if vals[1] == 'LOAD':
+            te: ElementTreePage.TreeElementCollection = self._collection_registry[vals[0]]
+            self.collection_tree.detach(item)
+            self._load_next_page(te)
+        elif vals[1] == 'NewElement':
             te: ElementTreePage.TreeElementCollection = self._collection_registry[vals[0]]
             self.create_new(te.col)
         elif vals[1] == 'Element':

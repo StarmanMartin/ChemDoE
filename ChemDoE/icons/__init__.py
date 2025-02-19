@@ -35,3 +35,6 @@ class IconManager():
 
         _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/trash.png')
         self.TRASH = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))
+
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/chemotion-full.png')
+        self.CHEMOTION = ImageTk.PhotoImage(Image.open(_icon_path).resize((104,61)))

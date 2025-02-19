@@ -28,7 +28,7 @@ class LoginManager(Page):
                 instance = Instance(host).login_token(token).test_connection()
                 self.page_manager.start_page(StartPage(instance))
                 return True
-            except (RequestException, PermissionError):
+            except (RequestException, PermissionError, ConnectionError):
                 pass
         return False
 
@@ -64,10 +64,10 @@ class LoginManager(Page):
         try:
             urlparse(host)
             instance.test_connection()
-            self.check_label.config()(text="✅", foreground="green")
+            self.check_label.config(text="✅", foreground="green")
             ConfigManager().set('Last', 'Host', host)
         except:
-            self.check_label.config()(text="", foreground="green")
+            self.check_label.config(text="", foreground="green")
 
     def leave(self):
         self.page_manager.root.unbind("<Return>")

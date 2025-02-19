@@ -47,9 +47,33 @@ class ScrollableFrame(ttk.Frame):
             self._on_canvas_configure
         )
 
+        self.bind('<Enter>', self._bound_to_mousewheel)
+        self.bind('<Leave>', self._unbound_to_mousewheel)
+
+
+    def _bound_to_mousewheel(self, event):
+        self.canvas.bind_all("<MouseWheel>", self._on_mouse_scroll)
+        self.canvas.bind_all("<Button-4>", self._on_mouse_scroll)
+        self.canvas.bind_all("<Button-5>", self._on_mouse_scroll)
+
+
+    def _unbound_to_mousewheel(self, event):
+        self.canvas.unbind_all("<MouseWheel>")
+        self.canvas.unbind_all("<Button-4>")
+        self.canvas.unbind_all("<Button-5>")
+
     def _on_canvas_configure(self, event):
         # Set the inner frame's width to match the canvas's width.
         self.canvas.itemconfig(self.window_item, width=event.width)
+
+    def _on_mouse_scroll(self, event):
+        """Enable scrolling with mouse wheel"""
+        if event.num == 4:  # Scroll Up (Linux)
+            self.canvas.yview_scroll(-1, "units")
+        elif event.num == 5:  # Scroll Down (Linux)
+            self.canvas.yview_scroll(1, "units")
+        elif event.delta:  # Windows & macOS
+            self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
 class ListRow(tk.Frame):
     def __init__(self, parent, icon, title, subtitle, delete_callback):

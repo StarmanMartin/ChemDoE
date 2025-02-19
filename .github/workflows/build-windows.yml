@@ -1,0 +1,38 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches:
+      - main  # Run when pushing to 'main' branch
+  pull_request:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"  # Change to your project's Python version
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Install Dependencies
+        run: |
+          poetry install
+
+      - name: Build Executable with PyInstaller
+        run: |
+          poetry run pyinstaller ChemDoE.spec
+
+      - name: Upload EXE as an Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-executable
+          path: dist/ChemDoE.exe

@@ -6,15 +6,18 @@ authors = ["Martin <m.starman@live.comdd>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.12,<3.14"
 tk = "^0.1.0"
-chemotion-api = "^0.3.43"
+chemotion-api = "^0.3.47"
 platformdirs = "^4.3.6"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.13.3"
 pillow = "^11.1.0"
 cairosvg = "^2.7.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^6.12.0"
 
 [build-system]
 requires = ["poetry-core"]

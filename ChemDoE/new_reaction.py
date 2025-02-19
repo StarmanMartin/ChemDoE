@@ -23,6 +23,8 @@ class NewReaction(ElementTreePage):
         else:
             self.reaction = reaction
             self._name_var = tk.StringVar(value=reaction.name)
+        self._name_var.trace_add("write", self._name_change)
+        self._origen_data = self.reaction.clean_data()
 
     def render(self, container: ttk.Frame):
         super().render(container)
@@ -44,8 +46,7 @@ class NewReaction(ElementTreePage):
         entry_row.grid_columnconfigure(1, weight=1)# Left-aligned
 
         # Entry (Expands)
-        entry = ttk.Entry(entry_row)
-        entry.insert(0, self.reaction.name)
+        entry = ttk.Entry(entry_row, textvariable=self._name_var)
         entry.grid(row=0, column=1, sticky="ew", padx=(0, 5))
 
 
@@ -56,8 +57,10 @@ class NewReaction(ElementTreePage):
         self._render_material_input(left_frame, 'Reactants', self.reaction.properties['reactants'])
         self._render_material_input(left_frame, 'Products', self.reaction.properties['products'])
 
-        ttk.Button(left_frame, style="Save.TButton", text="Save",
-                              command=lambda *x: self._save()).pack()
+        self._save_btn = ttk.Button(left_frame, style="Save.TButton", text="Save",
+                              command=lambda *x: self._save())
+        self._save_btn.pack()
+        self._check_change()
 
     def _render_material_input(self, left_frame, title, elements):
         start_mat_row = tk.Frame(left_frame, borderwidth=1, relief=tk.RAISED, background="#ffffff")
@@ -70,19 +73,22 @@ class NewReaction(ElementTreePage):
         drop_lable.pack(expand=True, fill=tk.X, pady=5, padx=5)
         start_mat_row.pack(fill=tk.X, pady=5)
         drop_frame.pack(fill=tk.X, pady=5)
-        self._dh.on_drop_in_target(drop_frame, lambda selection, target: self._on_drop(selection, list_frame, elements))
+        self._dh.on_drop_in_target(drop_frame, lambda selection, target: self._on_drop(str(selection), list_frame, elements))
 
     def _list_materials(self, materials: list[Sample], frame):
-        for sample in materials:
-            self._list_sdd_materials(sample, frame)
+        for idx, sample in enumerate(materials):
+            self._list_sdd_materials(materials, idx, frame)
 
 
-    def _list_sdd_materials(self, sample: Sample, frame):
-        row = ListRow(frame, IconManager().SAMPLE_ICON, sample.short_label, sample.name, lambda *args: self._delete_row(sample, *args))
+    def _list_sdd_materials(self, materials: list[Sample], idx: int, frame):
+        sample = materials[idx]
+        row = ListRow(frame, IconManager().SAMPLE_ICON, sample.short_label, sample.molecule['cano_smiles'], lambda *args: self._delete_row(sample, materials, row, *args))
         row.pack(fill="x", pady=2)
 
-    def _delete_row(self, sample, *args):
-        pass
+    def _delete_row(self, sample: Sample, materials: list[Sample], row: ListRow, *args):
+        materials.remove(sample)
+        row.destroy()
+        self._check_change()
 
     def _drag_start(self, selection):
         vals = self.collection_tree.item(selection, "values")
@@ -92,7 +98,8 @@ class NewReaction(ElementTreePage):
         vals = self.collection_tree.item(selection, "values")
         sample = self.instance.get_sample(int(vals[0]))
         elements.append(sample)
-        self._list_sdd_materials(sample, frame.master)
+        self._list_sdd_materials(elements, len(elements) - 1, frame.master)
+        self._check_change()
 
     def set_style(self, style: ttk.Style):
         super().set_style(style)
@@ -102,3 +109,14 @@ class NewReaction(ElementTreePage):
     def _save(self):
         self.reaction.properties['name'] = self._name_var.get()
         self.reaction.save()
+        self._origen_data = self.reaction.clean_data()
+
+    def _name_change(self, *args):
+        self.reaction.properties['name'] = self._name_var.get()
+        self._check_change()
+
+    def _check_change(self):
+        if self._origen_data == self.reaction.clean_data():
+            self._save_btn.state(["disabled"])  # Disable the button.
+        else:
+            self._save_btn.state(["!disabled"])
