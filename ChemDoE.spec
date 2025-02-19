@@ -8,7 +8,7 @@ import os
 script_name = "ChemDoE/main.py"
 
 # Collect hidden imports for PIL (fixes ImageTk issue)
-hidden_imports = collect_submodules("PIL")
+hidden_imports = ["PIL.ImageTk", "PIL._tkinter_finder"]
 
 # Collect static files
 static_files = [
@@ -20,8 +20,8 @@ a = Analysis(
     [script_name],
     pathex=[],
     binaries=[],
-    datas=collect_data_files("PIL") + static_files,
-    hiddenimports=hidden_imports + ["PIL.ImageTk", "PIL._tkinter_finder"],
+    datas=static_files,
+    hiddenimports=hidden_imports,
     hookspath=[],
     runtime_hooks=[],
     excludes=[],

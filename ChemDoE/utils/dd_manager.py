@@ -36,8 +36,9 @@ class DragManager():
         self.root.after(100, self._start_dragging, event)
 
     def _start_dragging(self, event):
-        if not self.key_pressed:
+        if not self.key_pressed or not self.tree.winfo_exists():
             return
+
         selection = self.tree.selection()[0]
         if not selection or not self._on_drag_start(selection):
             return

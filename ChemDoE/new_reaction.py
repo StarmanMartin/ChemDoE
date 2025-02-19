@@ -1,3 +1,4 @@
+import threading
 from tkinter import ttk
 import tkinter as tk
 from typing import Optional
@@ -6,7 +7,8 @@ from chemotion_api import Instance, Reaction, Sample
 from chemotion_api.collection import Collection
 
 from ChemDoE.element_tree_page import ElementTreePage
-from ChemDoE.icons import IconManager
+from ChemDoE.icons import IconManager, LoadingGIF
+from ChemDoE.new_sample import NewSample
 from ChemDoE.utils.dd_manager import DragManager
 from ChemDoE.utils.pages import ListRow, ScrollableFrame
 
@@ -108,8 +110,19 @@ class NewReaction(ElementTreePage):
 
     def _save(self):
         self.reaction.properties['name'] = self._name_var.get()
-        self.reaction.save()
-        self._origen_data = self.reaction.clean_data()
+        lg = LoadingGIF(self._page_manager.root)
+        lg.add_label(self._save_btn)
+        lg.start()
+        def stop():
+            lg.stop()
+            self._origen_data = self.reaction.clean_data()
+            self._check_change()
+
+        def run():
+            self.reaction.save()
+            self._page_manager.root.after(1000, stop)
+
+        threading.Thread(target=run).start()
 
     def _name_change(self, *args):
         self.reaction.properties['name'] = self._name_var.get()
@@ -120,3 +133,6 @@ class NewReaction(ElementTreePage):
             self._save_btn.state(["disabled"])  # Disable the button.
         else:
             self._save_btn.state(["!disabled"])
+
+    def create_new(self, col: Collection):
+        self._page_manager.set_page(NewSample(self.instance, col))

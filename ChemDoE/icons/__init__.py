@@ -6,9 +6,9 @@ from PIL import Image, ImageTk
 __all__ = ['IconManager']
 
 class LoadingGIF:
-    def __init__(self, root, gif_path):
+    def __init__(self, root):
+        self.gif_path = os.path.join(os.path.dirname(__file__), 'fixed/loading.gif')
         self.root = root
-        self.gif_path = gif_path
 
         # Load the GIF
         self.image = Image.open(self.gif_path)
@@ -18,7 +18,7 @@ class LoadingGIF:
         # Extract all frames
         try:
             while True:
-                frame = self.image.copy()  # Copy current frame
+                frame = self.image.copy().resize((16, 16), Image.LANCZOS)
                 self.frames.append(ImageTk.PhotoImage(frame))
                 self.image.seek(len(self.frames))  # Move to next frame
         except EOFError:
@@ -30,10 +30,7 @@ class LoadingGIF:
         self.labels = []
 
     def add_label(self, label: tk.Widget):
-        l = tk.Label(label)
-        l.pack()
-        self.labels.append(l)
-        return l
+        self.labels.append(label)
 
     def _animate(self):
         """Update the GIF frame repeatedly"""
@@ -47,8 +44,7 @@ class LoadingGIF:
 
     def stop(self):
         self.root.after_cancel(self._call_id)
-        for l in self.labels:
-            l.destroy()
+        self.labels = []
 
 
 
