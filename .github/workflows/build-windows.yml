@@ -17,7 +17,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.12"  # Change to your project's Python version
+          python-version: "3.12"
+          architecture: "x64"  # Ensure 64-bit version
 
       - name: Install Poetry
         run: |
@@ -29,7 +30,7 @@ jobs:
 
       - name: Build Executable with PyInstaller
         run: |
-          poetry run pyinstaller --clean --noconfirm ChemDoE.spec
+          python ./pyinstaller.py
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4

@@ -1,10 +1,11 @@
 import threading
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import tkinter as tk
 from typing import Optional
 
 from chemotion_api import Instance, Reaction, Sample
 from chemotion_api.collection import Collection
+from requests import RequestException
 
 from ChemDoE.element_tree_page import ElementTreePage
 from ChemDoE.icons import IconManager, LoadingGIF
@@ -53,7 +54,7 @@ class NewReaction(ElementTreePage):
 
 
         self._dh = DragManager(self.collection_tree, self.page_manager.root)
-        self._on_drag_start = self._drag_start
+        self._dh.on_drag_start = self._drag_start
 
         self._render_material_input(left_frame, 'Starting Material', self.reaction.properties['starting_materials'])
         self._render_material_input(left_frame, 'Reactants', self.reaction.properties['reactants'])
@@ -113,14 +114,25 @@ class NewReaction(ElementTreePage):
         lg = LoadingGIF(self._page_manager.root)
         lg.add_label(self._save_btn)
         lg.start()
-        def stop():
+        def stop(success):
             lg.stop()
+            if success:
+                self._origen_data = self.reaction.clean_data()
+                self._check_change()
+                self._page_manager.go_back()
+                messagebox.showinfo("Saving Success", "The Reaction was saved.")
+            else:
+                messagebox.showerror("Saving failed", "The Reaction was not saved.")
+
             self._origen_data = self.reaction.clean_data()
             self._check_change()
 
         def run():
-            self.reaction.save()
-            self._page_manager.root.after(1000, stop)
+            try:
+                self.reaction.save()
+                self._page_manager.root.after(1000, stop, True)
+            except RequestException as e:
+                self._page_manager.root.after(1000, stop, False)
 
         threading.Thread(target=run).start()
 
