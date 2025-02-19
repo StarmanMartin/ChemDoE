@@ -30,7 +30,7 @@ jobs:
 
       - name: Build Executable with PyInstaller
         run: |
-          python ./pyinstaller.py
+           poetry run python pyinstaller.py
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
