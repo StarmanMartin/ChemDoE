@@ -31,12 +31,13 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt update
-          sudo apt install -y wine-stable
+          sudo apt install -y wine-stable wine64 wine32
 
       - name: Install Windows Python 3.12 via Wine
         run: |
           wget https://www.python.org/ftp/python/3.12.2/python-3.12.2-embed-amd64.zip
           unzip python-3.12.2-embed-amd64.zip -d wine-python
+          WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe -m venv wine-python/venv
 
       - name: Install Dependencies
         run: |
