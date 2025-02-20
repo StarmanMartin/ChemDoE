@@ -31,12 +31,15 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt update
-          sudo apt install -y wine-stable wine64 wine32
+          sudo apt install -y winetricks
+          sudo apt install -y wine-stable wine64 wine32 
 
       - name: Install Windows Python 3.12 via Wine
         run: |
           export WINEPREFIX="$HOME/.wine-python"
-          wineboot --init
+          WINEPREFIX="$HOME/.wine-python" winetricks settings win7
+          WINEPREFIX="$HOME/.wine-python" winetricks vd=1024x768
+
           
           wget https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64.exe
           WINEPREFIX="$HOME/.wine-python" wine python-3.12.2-amd64.exe /quiet InstallAllUsers=0 PrependPath=1
