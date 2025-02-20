@@ -37,18 +37,25 @@ jobs:
         run: |
           wget https://www.python.org/ftp/python/3.12.2/python-3.12.2-embed-amd64.zip
           unzip python-3.12.2-embed-amd64.zip -d wine-python
-          echo -e '[build-system]\nrequires = ["setuptools", "wheel"]\nbuild-backend = "setuptools.build_meta"' > wine-python/pyvenv.cfg
+          
+          WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe -m venv wine-python/venv
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
+          WINEPREFIX="$HOME/.wine-python" wine wine-python/venv/Scripts/python.exe -m pip install -r requirements.txt
 
       - name: Build Executable with PyInstaller
         run: |
-          python pyinstaller.py
+          WINEPREFIX="$HOME/.wine-python" wine wine-python/venv/Scripts/python.exe pyinstaller.py
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
           path: dist/ChemDoE.exe
+
+      - name: Upload EXE as an Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-executable
+          path: dist/ChemDoE
