@@ -31,8 +31,8 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt update
-          sudo apt install -y winetricks
           sudo apt install -y wine-stable wine64 wine32 
+          sudo apt install -y winetricks
 
       - name: Install Windows Python 3.12 via Wine
         run: |
