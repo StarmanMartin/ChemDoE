@@ -37,7 +37,7 @@ jobs:
       - name: Install Windows Python 3.12 via Wine
         run: |
           export WINEPREFIX="$HOME/.wine-python"
-          WINEPREFIX="$HOME/.wine-python" winetricks settings win7
+          WINEPREFIX="$HOME/.wine-python" winetricks settings win10
           WINEPREFIX="$HOME/.wine-python" winetricks vd=1024x768
 
           
