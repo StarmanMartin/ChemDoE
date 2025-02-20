@@ -40,11 +40,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          WINEPREFIX="$HOME/.wine-python" wine wine-python/venv/Scripts/python.exe -m pip install -r requirements.txt
+          WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe -m pip install -r requirements.txt
 
       - name: Build Executable with PyInstaller
         run: |
-          WINEPREFIX="$HOME/.wine-python" wine wine-python/venv/Scripts/python.exe pyinstaller.py
+          WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe pyinstaller.py
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
