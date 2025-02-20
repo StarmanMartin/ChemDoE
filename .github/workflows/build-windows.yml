@@ -36,7 +36,9 @@ jobs:
       - name: Install Windows Python 3.12 via Wine
         run: |
           wget https://www.python.org/ftp/python/3.12.2/python-3.12.2-embed-amd64.zip
-          unzip python-3.12.2-embed-amd64.zip -d wine-python
+          export WINEPREFIX="$HOME/.wine-python"
+          wineboot --init
+          unzip python-3.12.2-embed-amd64.zip -d $WINEPREFIX/drive_c/python
           WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe -m venv wine-python/venv
 
       - name: Install Dependencies
