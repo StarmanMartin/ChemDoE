@@ -7,16 +7,18 @@ from chemotion_api import Instance, Reaction, Sample
 from chemotion_api.collection import Collection
 from requests import RequestException
 
+from ChemDoE.config import ConfigManager
 from ChemDoE.element_tree_page import ElementTreePage
 from ChemDoE.icons import IconManager, LoadingGIF
 from ChemDoE.new_sample import NewSample
 from ChemDoE.utils.dd_manager import DragManager
 from ChemDoE.utils.pages import ListRow, ScrollableFrame
+from doe_manager import DoEPage
 
 
 class NewReaction(ElementTreePage):
-    def __init__(self, instance: Instance, collection: Collection, reaction: Optional[Reaction] = None):
-        super().__init__(instance, 'Sample')
+    def __init__(self, collection: Collection, reaction: Optional[Reaction] = None):
+        super().__init__('Sample')
         self._collection = collection
         self._is_new = reaction is None
         self._dh: Optional[DragManager] = None
@@ -27,14 +29,26 @@ class NewReaction(ElementTreePage):
             self.reaction = reaction
             self._name_var = tk.StringVar(value=reaction.name)
         self._name_var.trace_add("write", self._name_change)
-        self._origen_data = self.reaction.clean_data()
+        self._origen_data = self._prepare_compare_data()
 
     def render(self, container: ttk.Frame):
         super().render(container)
 
         left_frame = ScrollableFrame(self.paned_window, relief=tk.SUNKEN, padding=5)
-        self.paned_window.add(left_frame, weight=1)  # weight allows resizing
+        self.paned_window.add(left_frame, weight=3)  # weight allows resizing
         left_frame = left_frame.scrollable_frame
+        button_row = tk.Frame(left_frame, bg="white")
+        self._save_btn = ttk.Button(button_row, style="Save.TButton", text="Save",
+                              command=lambda *x: self._save())
+        self._save_btn.pack(side=tk.LEFT)
+        self._doe_btn = ttk.Button(button_row, style="Menu.TButton", text="Adjust DoE",
+                              command=lambda *x: self._go_to_doe())
+        self._doe_btn.pack(side=tk.LEFT)
+        self._fav_btn = ttk.Button(button_row, style="Fav.TButton", text="Add ot Favorites",
+                              command=lambda *x: self._toggel_favorites())
+        self._fav_btn.pack(side=tk.RIGHT)
+        button_row.pack(fill="x", expand=True)
+
         if self._is_new:
             ttk.Label(left_frame, text='New Reaction', font=('Arial', 16, 'bold'), justify='right').pack(fill=tk.X)
         else:
@@ -59,11 +73,9 @@ class NewReaction(ElementTreePage):
         self._render_material_input(left_frame, 'Starting Material', self.reaction.properties['starting_materials'])
         self._render_material_input(left_frame, 'Reactants', self.reaction.properties['reactants'])
         self._render_material_input(left_frame, 'Products', self.reaction.properties['products'])
-
-        self._save_btn = ttk.Button(left_frame, style="Save.TButton", text="Save",
-                              command=lambda *x: self._save())
-        self._save_btn.pack()
         self._check_change()
+        self._style_favorite()
+
 
     def _render_material_input(self, left_frame, title, elements):
         start_mat_row = tk.Frame(left_frame, borderwidth=1, relief=tk.RAISED, background="#ffffff")
@@ -101,13 +113,15 @@ class NewReaction(ElementTreePage):
         vals = self.collection_tree.item(selection, "values")
         sample = self.instance.get_sample(int(vals[0]))
         elements.append(sample)
-        self._list_sdd_materials(elements, len(elements) - 1, frame.master)
+        self._list_sdd_materials(elements, len(elements) - 1, frame)
         self._check_change()
 
     def set_style(self, style: ttk.Style):
         super().set_style(style)
         style.configure('Drop.TLabel', foreground="#555555", padx=(0, 5), pady=(0, 5))
         style.configure('Save.TButton', background='#5cb85c', foreground="#ffffff", padx=(0, 5), pady=(0, 5))
+        style.configure('Menu.TButton', background='#333333', foreground="#ffffff", padx=(0, 5), pady=(0, 5))
+        style.configure('Fav.TButton',  background="#ffffff", relief=tk.SOLID, borderwidth=0, padx=(0, 5), pady=(0, 5))
 
     def _save(self):
         self.reaction.properties['name'] = self._name_var.get()
@@ -117,19 +131,16 @@ class NewReaction(ElementTreePage):
         def stop(success):
             lg.stop()
             if success:
-                self._origen_data = self.reaction.clean_data()
+                self._origen_data = self._prepare_compare_data()
+                self._is_new = False
                 self._check_change()
-                self._page_manager.go_back()
                 messagebox.showinfo("Saving Success", "The Reaction was saved.")
             else:
                 messagebox.showerror("Saving failed", "The Reaction was not saved.")
 
-            self._origen_data = self.reaction.clean_data()
-            self._check_change()
-
         def run():
             try:
-                self.reaction.save()
+                self.reaction.save(True)
                 self._page_manager.root.after(1000, stop, True)
             except RequestException as e:
                 self._page_manager.root.after(1000, stop, False)
@@ -141,10 +152,39 @@ class NewReaction(ElementTreePage):
         self._check_change()
 
     def _check_change(self):
-        if self._origen_data == self.reaction.clean_data():
-            self._save_btn.state(["disabled"])  # Disable the button.
+        if self._origen_data == self._prepare_compare_data():
+            self._save_btn.state(["disabled"])
+            if not self._is_new:# Disable the button.
+                self._doe_btn.state(["!disabled"])  # Disable the button.
         else:
             self._save_btn.state(["!disabled"])
+            self._doe_btn.state(["disabled"])
+
+    def _prepare_compare_data(self):
+        return "__".join([
+            self.reaction.properties['name'],
+            "_".join([str(x.id) for x in self.reaction.properties['starting_materials']]),
+            "_".join([str(x.id) for x in self.reaction.properties['reactants']]),
+            "_".join([str(x.id) for x in self.reaction.properties['products']]),
+        ])
+
+    def _style_favorite(self):
+        if self.reaction.id in ConfigManager().favorites:
+            self._fav_btn.config(image=IconManager().FAVORITE)
+        else:
+            self._fav_btn.config(image=IconManager().NO_FAVORITE)
+
+    def _toggel_favorites(self):
+        if self.reaction.id in ConfigManager().favorites:
+            ConfigManager().remove_from_favorites(self.reaction)
+        else:
+            ConfigManager().add_to_favorites(self.reaction)
+        self.update_fav_dropdown()
+        self._style_favorite()
+
+    def _go_to_doe(self):
+        doe = DoEPage()
+        self._page_manager.set_page(doe)
 
     def create_new(self, col: Collection):
-        self._page_manager.set_page(NewSample(self.instance, col))
+        self._page_manager.set_page(NewSample(col))

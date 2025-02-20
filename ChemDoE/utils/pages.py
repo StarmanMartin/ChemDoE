@@ -1,8 +1,10 @@
+import threading
 from tkinter import ttk
 import tkinter as tk
+from tkinter.ttk import Combobox
 from typing import Optional
 
-from chemotion_api import Instance
+from chemotion_api import Reaction
 
 from ChemDoE.config import ConfigManager
 from ChemDoE.icons import IconManager
@@ -50,12 +52,10 @@ class ScrollableFrame(ttk.Frame):
         self.bind('<Enter>', self._bound_to_mousewheel)
         self.bind('<Leave>', self._unbound_to_mousewheel)
 
-
     def _bound_to_mousewheel(self, event):
         self.canvas.bind_all("<MouseWheel>", self._on_mouse_scroll)
         self.canvas.bind_all("<Button-4>", self._on_mouse_scroll)
         self.canvas.bind_all("<Button-5>", self._on_mouse_scroll)
-
 
     def _unbound_to_mousewheel(self, event):
         self.canvas.unbind_all("<MouseWheel>")
@@ -74,6 +74,7 @@ class ScrollableFrame(ttk.Frame):
             self.canvas.yview_scroll(1, "units")
         elif event.delta:  # Windows & macOS
             self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
 
 class ListRow(tk.Frame):
     def __init__(self, parent, icon, title, subtitle, delete_callback):
@@ -99,9 +100,12 @@ class ListRow(tk.Frame):
 
 
 class ToolBarPage(Page):
-    def __init__(self, instance: Instance):
+    fav_dropdown: Combobox
+
+    def __init__(self):
         super().__init__()
-        self.instance = instance
+        self._fav_reactions = None
+        self.instance = ConfigManager().chemotion
         self.toolbar: Optional[ttk.Frame] = None
 
     def _logout(self):
@@ -113,7 +117,7 @@ class ToolBarPage(Page):
 
     def render(self, container: ttk.Frame):
         # Create a toolbar frame at the top
-        toolbar =  ttk.Frame(container, padding=0)
+        toolbar = ttk.Frame(container, padding=0)
         toolbar.pack(side="top", fill="x")
 
         if self.page_manager.can_go_back():
@@ -131,11 +135,47 @@ class ToolBarPage(Page):
         forward_btn.image = IconManager().FORWARD_ICON
         back_btn.pack(side="left", padx=5)
         forward_btn.pack(side="left", padx=5)
+
+        self._fav_reactions = []
+        # Create a Combobox with the list of options
+        self.fav_dropdown = ttk.Combobox(toolbar, values=[])
+        self.fav_dropdown.pack(side="left", padx=5, pady=0)
+        self.fav_dropdown.bind("<<ComboboxSelected>>", self._on_fav_select)
         self.toolbar = ttk.Frame(toolbar, padding=0)
         self.toolbar.pack(side="left", padx=5)
 
         logout_button = ttk.Button(toolbar, text="Logout", style="Logout.TButton", command=self._logout)
         logout_button.pack(side="right", padx=5)
+        self.update_fav_dropdown()
+
+    def update_fav_dropdown(self):
+        def load():
+            self._fav_reactions = [(-1, 'Favorites')] + ConfigManager().favorites_with_names
+            self._page_manager.root.after(0, done_load)
+        def done_load():
+            self.fav_dropdown.config(values=[x[1] for x in self._fav_reactions])
+            if hasattr(self, 'reaction'):
+                idx = next((i for i, x in enumerate(self._fav_reactions) if x[0] == self.reaction.id), 0)
+            else:
+                idx = 0
+            self.fav_dropdown.current(idx)
+
+        t = threading.Thread(target=load)
+        t.daemon = True
+        t.start()
+
+    def _on_fav_select(self, event):
+        idx = self.fav_dropdown.current()
+        id = self._fav_reactions[idx][0]
+        if id > 0:
+            from ChemDoE.new_reaction import NewReaction
+            reaction = ConfigManager().chemotion.get_reaction(id)
+            try:
+                collection_id = reaction.json_data['tag']['taggable_data']['collection_labels'][0]["id"]
+                col = ConfigManager().chemotion.get_root_collection().find(id=collection_id)[0]
+            except (KeyError, IndexError):
+                col = ConfigManager().chemotion.get_root_collection()
+            self._page_manager.set_page(NewReaction(col, reaction))
 
     def set_style(self, style: ttk.Style):
 
@@ -146,7 +186,7 @@ class ToolBarPage(Page):
         )
 
         style.configure("Logout.TButton", background="#f54260",
-            foreground="white", **button_default)
+                        foreground="white", **button_default)
         style.configure("NAV.Active.TButton", **button_default)
         style.configure("NAV.NotActive.TButton", background="#756b6d", foreground="lightgray", **button_default)
         style.map("NAV.NotActive.TButton", background=[("active", "#756b6d")], foreground=[("active", "lightgray")])

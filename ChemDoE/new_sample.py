@@ -12,8 +12,8 @@ from ChemDoE.utils.pages import ToolBarPage, ScrollableFrame
 
 
 class NewSample(ToolBarPage):
-    def __init__(self, instance: Instance, collection: Collection, sample: Optional[Sample] = None):
-        super().__init__(instance)
+    def __init__(self, collection: Collection, sample: Optional[Sample] = None):
+        super().__init__()
         self._save_btn = None
         self._collection = collection
         self._is_new = sample is None

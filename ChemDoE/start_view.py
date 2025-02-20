@@ -5,16 +5,16 @@ from ChemDoE.new_reaction import NewReaction
 
 
 class StartPage(ElementTreePage):
-    def __init__(self, instance: Instance):
-        super().__init__(instance, 'Reaction')
+    def __init__(self):
+        super().__init__('Reaction')
         self._new_reaction = None
 
 
     def create_new(self, collection):
-        self._new_reaction = NewReaction(self.instance, collection)
+        self._new_reaction = NewReaction(collection)
         self.page_manager.set_page(self._new_reaction)
 
 
     def select_element(self, collection, reaction):
-        self._new_reaction = NewReaction(self.instance, collection, reaction)
+        self._new_reaction = NewReaction(collection, reaction)
         self.page_manager.set_page(self._new_reaction)

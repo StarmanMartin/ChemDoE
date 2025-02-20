@@ -23,12 +23,17 @@ class LoginManager(Page):
     def _check_token(self):
         host = ConfigManager.get("Chemotion", "host")
         token = ConfigManager.get("Chemotion", "token")
+        username = ConfigManager.get("Chemotion", "user")
         if host and token:
             try:
                 instance = Instance(host).login_token(token).test_connection()
-                self.page_manager.start_page(StartPage(instance))
+                ConfigManager().chemotion = instance
+                ConfigManager().set('Last', 'host', host, commit=False)
+                ConfigManager().set('Last', 'user', username)
+                self.page_manager.start_page(StartPage())
                 return True
             except (RequestException, PermissionError, ConnectionError):
+                ConfigManager().chemotion = None
                 pass
         return False
 
@@ -41,6 +46,7 @@ class LoginManager(Page):
 
         try:
             instance.login(username, password).test_connection()
+            ConfigManager().chemotion = instance
             if self.check_var.get():
                 ConfigManager().set("Chemotion", "host", host, commit=False)
                 ConfigManager().set("Chemotion", "user", username, commit=False)
@@ -50,11 +56,14 @@ class LoginManager(Page):
                 ConfigManager().set("Chemotion", "user", '', commit=False)
                 ConfigManager().set("Chemotion", "token", '', commit=False)
 
-            ConfigManager().set('Last', 'remember', str(self.check_var.get()))
-            self.page_manager.start_page(StartPage(instance))
+            ConfigManager().set('Last', 'remember', str(self.check_var.get()), commit=False)
+            ConfigManager().set('Last', 'User', username)
+            self.page_manager.start_page(StartPage())
         except RequestException:
+            ConfigManager().chemotion = None
             messagebox.showerror("Login Failed", f"Invalid HOST url: {host}")
         except PermissionError:
+            ConfigManager().chemotion = None
             messagebox.showerror("Login Failed", "Invalid username or password")
 
     def _validate_input(self, *args):

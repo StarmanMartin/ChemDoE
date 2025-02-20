@@ -39,9 +39,9 @@ class ElementTreePage(ToolBarPage):
             self.children: list[ElementTreePage.TreeElementCollection] = []
             self.elements: list[ElementTreePage.TreeElementElement] = []
 
-    def __init__(self, instance: Instance, element_type: Literal['Reaction', 'Sample'] = 'Reaction'):
-        super().__init__(instance)
-        self._tree_structor = ElementTreePage.TreeElementCollection(instance.get_root_collection())
+    def __init__(self, element_type: Literal['Reaction', 'Sample'] = 'Reaction'):
+        super().__init__()
+        self._tree_structor = ElementTreePage.TreeElementCollection(self.instance.get_root_collection())
         self._tree_structor.tree_node = ""
         self._search_var = tk.StringVar()
         self._collection_registry: dict[str, ElementTreePage.TreeElementCollection] = {}
@@ -154,7 +154,8 @@ class ElementTreePage(ToolBarPage):
 
             if not self.is_visible:
                 return
-            self.collection_tree.item(te.tree_node, text=te.title + " ⏳")
+            self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title + " ⏳"), te)
+
             end_length = min(all_elements, current_length + self.number_of_elements_per_page)
             for i in range(current_length, end_length):
                 if not self.is_visible:
@@ -171,9 +172,9 @@ class ElementTreePage(ToolBarPage):
             if self.is_visible:
                 self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title ), te)
             if len(te.elements) < all_elements:
-                self.collection_tree.insert(te.tree_node, "end", text="...Load more...", open=False,
-                                            image=icon,
-                                            values=(str(te.col.id), "LOAD"))
+                self.page_manager.root.after(0, lambda te: self.collection_tree.insert(te.tree_node, "end", text="...Load more...", open=False, image=icon, values=(str(te.col.id), "LOAD")), te)
+
+
         except tk.TclError:
             return
 
@@ -203,8 +204,10 @@ class ElementTreePage(ToolBarPage):
             return
         if vals[1] == 'LOAD':
             te: ElementTreePage.TreeElementCollection = self._collection_registry[vals[0]]
-            self.collection_tree.detach(item)
-            self._load_next_page(te)
+            te.loaded = True
+            thread = threading.Thread(target=self._load_next_page, args=(te,), daemon=True)
+            thread.start()
+            self.collection_tree.delete(item)
         elif vals[1] == 'NewElement':
             te: ElementTreePage.TreeElementCollection = self._collection_registry[vals[0]]
             self.create_new(te.col)

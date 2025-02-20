@@ -81,3 +81,9 @@ class IconManager():
 
         _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/chemotion-full.png')
         self.CHEMOTION = ImageTk.PhotoImage(Image.open(_icon_path).resize((104,61)))
+
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/no_fav.png')
+        self.NO_FAVORITE = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))
+
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/fav.png')
+        self.FAVORITE = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))
