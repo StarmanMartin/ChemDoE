@@ -183,7 +183,7 @@ class NewReaction(ElementTreePage):
         self._style_favorite()
 
     def _go_to_doe(self):
-        doe = DoEPage()
+        doe = DoEPage(self.reaction)
         self._page_manager.set_page(doe)
 
     def create_new(self, col: Collection):

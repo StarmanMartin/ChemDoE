@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -22,15 +22,30 @@ jobs:
 
       - name: Install Poetry
         run: |
-          pip install poetry
+          python -m pip install --upgrade pip
+          pip install poetry pyinstaller pillow
+          poetry self add  poetry-plugin-export
+          poetry export --without-hashes --format=requirements.txt > requirements.txt
+
+      - name: Install Wine for Windows Cross-Compilation
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install -y wine-stable
+
+      - name: Install Windows Python 3.12 via Wine
+        run: |
+          wget https://www.python.org/ftp/python/3.12.2/python-3.12.2-embed-amd64.zip
+          unzip python-3.12.2-embed-amd64.zip -d wine-python
+          echo -e '[build-system]\nrequires = ["setuptools", "wheel"]\nbuild-backend = "setuptools.build_meta"' > wine-python/pyvenv.cfg
 
       - name: Install Dependencies
         run: |
-          poetry install
+          pip install -r requirements.txt
 
       - name: Build Executable with PyInstaller
         run: |
-           poetry run python pyinstaller.py
+          python pyinstaller.py
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
