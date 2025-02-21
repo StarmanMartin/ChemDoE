@@ -13,7 +13,7 @@ from ChemDoE.icons import IconManager, LoadingGIF
 from ChemDoE.new_sample import NewSample
 from ChemDoE.utils.dd_manager import DragManager
 from ChemDoE.utils.pages import ListRow, ScrollableFrame
-from doe_manager import DoEPage
+from ChemDoE.doe_manager import DoEPage
 
 
 class NewReaction(ElementTreePage):
