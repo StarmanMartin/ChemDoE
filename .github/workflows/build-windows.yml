@@ -14,53 +14,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.12"
-          architecture: "x64"  # Ensure 64-bit version
-
-      - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry pyinstaller pillow
-          poetry self add  poetry-plugin-export
-          poetry export --without-hashes --format=requirements.txt > requirements.txt
-
-      - name: Install Wine for Windows Cross-Compilation
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt update
-          sudo apt install -y wine-stable wine64 wine32 
-          sudo apt install -y winetricks
-
-      - name: Install Windows Python 3.12 via Wine
-        run: |
-          export WINEPREFIX="$HOME/.wine-python"
-          WINEPREFIX="$HOME/.wine-python" winetricks settings win10
-          WINEPREFIX="$HOME/.wine-python" winetricks vd=1024x768
-
-          
-          wget https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64.exe
-          WINEPREFIX="$HOME/.wine-python" wine python-3.12.2-amd64.exe /quiet InstallAllUsers=0 PrependPath=1
-
-
-      - name: Install Dependencies
-        run: |
-          WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe -m pip install -r requirements.txt
-
-      - name: Build Executable with PyInstaller
-        run: |
-          WINEPREFIX="$HOME/.wine-python" wine wine-python/python.exe pyinstaller.py
+      - name: Build exe using docker images
+        run: docker run $(docker build -q .) > ChemDoE.exe
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: dist/ChemDoE.exe
-
-      - name: Upload EXE as an Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-executable
-          path: dist/ChemDoE
+          path: ChemDoE.exe

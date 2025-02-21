@@ -50,9 +50,9 @@ class NewReaction(ElementTreePage):
         button_row.pack(fill="x", expand=True)
 
         if self._is_new:
-            ttk.Label(left_frame, text='New Reaction', font=('Arial', 16, 'bold'), justify='right').pack(fill=tk.X)
+            ttk.Label(left_frame, text='New Reaction', font=ConfigManager.header_font, justify='right').pack(fill=tk.X)
         else:
-            ttk.Label(left_frame, text=f'Edit Reaction {self.reaction.short_label}', font=('Arial', 16, 'bold'), justify='right').pack(fill=tk.X)
+            ttk.Label(left_frame, text=f'Edit Reaction {self.reaction.short_label}', font=ConfigManager.header_font, justify='right').pack(fill=tk.X)
 
         entry_row = tk.Frame(left_frame)
         entry_row.pack(fill="x", pady=2)

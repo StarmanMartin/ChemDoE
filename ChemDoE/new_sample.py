@@ -7,6 +7,7 @@ from chemotion_api import Instance, Sample
 from chemotion_api.collection import Collection
 from requests import RequestException
 
+from ChemDoE.config import ConfigManager
 from ChemDoE.icons import LoadingGIF
 from ChemDoE.utils.pages import ToolBarPage, ScrollableFrame
 
@@ -34,9 +35,9 @@ class NewSample(ToolBarPage):
         left_frame.pack(fill=tk.BOTH, expand=True)  # weight allows resizing
         left_frame = left_frame.scrollable_frame
         if self._is_new:
-            ttk.Label(left_frame, text='New Sample', font=('Arial', 16, 'bold'), justify='right').pack(fill=tk.X)
+            ttk.Label(left_frame, text='New Sample', font=ConfigManager.header_font, justify='right').pack(fill=tk.X)
         else:
-            ttk.Label(left_frame, text=f'Edit Sample {self.sample.short_label}', font=('Arial', 16, 'bold'), justify='right').pack(fill=tk.X)
+            ttk.Label(left_frame, text=f'Edit Sample {self.sample.short_label}', font=ConfigManager.header_font, justify='right').pack(fill=tk.X)
 
         entry_row = tk.Frame(left_frame)
         entry_row.pack(fill=tk.BOTH, pady=2)
