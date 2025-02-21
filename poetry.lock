@@ -286,13 +286,13 @@ files = [
 
 [[package]]
 name = "chemotion-api"
-version = "0.3.47"
+version = "0.3.48"
 description = "A Chemotion python API"
 optional = false
 python-versions = "<4.0,>=3.09"
 files = [
-    {file = "chemotion_api-0.3.47-py3-none-any.whl", hash = "sha256:a176828fa24fe72845ae4cd472f7f4f8419999735f25f0b93925c9cf5d82279d"},
-    {file = "chemotion_api-0.3.47.tar.gz", hash = "sha256:f43b8e36781898b6276db277d364d8bf648649629a881558df0d0a4ee55d59d7"},
+    {file = "chemotion_api-0.3.48-py3-none-any.whl", hash = "sha256:433a6d0a6a1a449914f769bac16718eabec5da5d64cef599f82af5e7cd206c0c"},
+    {file = "chemotion_api-0.3.48.tar.gz", hash = "sha256:68e060643c900891b1c7642da05b030c1f2dd070df3721223d594599509e74f0"},
 ]
 
 [package.dependencies]
@@ -303,6 +303,7 @@ python-dateutil = ">=2.9.0,<3.0.0"
 python-magic = ">=0.4.27,<0.5.0"
 pytz = ">=2024.1,<2025.0"
 pyyaml = ">=6.0.1,<7.0.0"
+rdflib = ">=7.1.3,<8.0.0"
 requests = ">=2.32.3,<3.0.0"
 typing-extensions = ">=4.12.2,<5.0.0"
 
@@ -698,6 +699,20 @@ packaging = ">=22.0"
 setuptools = ">=42.0.0"
 
 [[package]]
+name = "pyparsing"
+version = "3.2.1"
+description = "pyparsing module - Classes and methods to define and execute parsing grammars"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "pyparsing-3.2.1-py3-none-any.whl", hash = "sha256:506ff4f4386c4cec0590ec19e6302d3aedb992fdc02c761e90416f158dacf8e1"},
+    {file = "pyparsing-3.2.1.tar.gz", hash = "sha256:61980854fd66de3a90028d679a954d5f2623e83144b5afe5ee86f43d762e5f0a"},
+]
+
+[package.extras]
+diagrams = ["jinja2", "railroad-diagrams"]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -805,6 +820,27 @@ files = [
     {file = "PyYAML-6.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:39693e1f8320ae4f43943590b49779ffb98acb81f788220ea932a6b6c51004d8"},
     {file = "pyyaml-6.0.2.tar.gz", hash = "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"},
 ]
+
+[[package]]
+name = "rdflib"
+version = "7.1.3"
+description = "RDFLib is a Python library for working with RDF, a simple yet powerful language for representing information."
+optional = false
+python-versions = "<4.0.0,>=3.8.1"
+files = [
+    {file = "rdflib-7.1.3-py3-none-any.whl", hash = "sha256:5402310a9f0f3c07d453d73fd0ad6ba35616286fe95d3670db2b725f3f539673"},
+    {file = "rdflib-7.1.3.tar.gz", hash = "sha256:f3dcb4c106a8cd9e060d92f43d593d09ebc3d07adc244f4c7315856a12e383ee"},
+]
+
+[package.dependencies]
+pyparsing = ">=2.1.0,<4"
+
+[package.extras]
+berkeleydb = ["berkeleydb (>=18.1.0,<19.0.0)"]
+html = ["html5rdf (>=1.2,<2)"]
+lxml = ["lxml (>=4.3,<6.0)"]
+networkx = ["networkx (>=2,<4)"]
+orjson = ["orjson (>=3.9.14,<4)"]
 
 [[package]]
 name = "referencing"
@@ -1068,4 +1104,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.14"
-content-hash = "c332d90fba4d9ceaa82a53b87b6963e803e2eb102b0ab9a516cbf49bfdac7396"
+content-hash = "711544bf934200009f8ae512f3fcb458b8a819f7476cb403dfd8db00c775f5d0"
