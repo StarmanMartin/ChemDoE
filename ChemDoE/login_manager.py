@@ -28,6 +28,7 @@ class LoginManager(Page):
             try:
                 instance = Instance(host).login_token(token).test_connection()
                 ConfigManager().chemotion = instance
+
                 ConfigManager().set('Last', 'host', host, commit=False)
                 ConfigManager().set('Last', 'user', username)
                 self.page_manager.start_page(StartPage())

@@ -9,6 +9,7 @@ from platformdirs import user_config_dir
 from chemotion_api import Instance
 
 config_dir = Path(user_config_dir("ChemDoE"))
+templates_dir = config_dir / "templates"
 config_path = config_dir / "config.ini"
 
 
@@ -24,6 +25,7 @@ class ConfigManager:
             cls._instance._favorites_reactions = None
             cls._instance._instance_key = None
             cls._instance._chemotion = None
+            cls._instance._segments = None
         return cls._instance
 
     @property
@@ -129,3 +131,19 @@ class ConfigManager:
     def save(self):
         with open(config_path, "w") as configfile:
             self.config.write(configfile)
+
+    def all_additional_fields(self):
+        if self._segments is None:
+            segments = self.chemotion.generic_manager().load_all_segments()
+            self._segments = []
+            for segment in segments:
+                if segment._element_klass.name == 'reaction' and segment.is_active:
+                    for l in segment.properties.layers:
+                        for f in l.fields:
+                            self._segments.append((segment, l ,f))
+        return self._segments
+
+
+    def save_template(self, template, name):
+        with open(templates_dir / name + '.json', "w") as configfile:
+            configfile.write(json.dumps(template))

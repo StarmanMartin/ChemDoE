@@ -4,8 +4,24 @@ from typing import Optional
 import tkinter as tk
 
 
+def validate_float(P):
+    if validate_numeric(P):
+        return True
+    try:
+        float(P)
+        return True
+    except ValueError:
+        print("Not a float")
+        return False
+
+
+def validate_numeric(P):
+    """Allow only digits"""
+    return P.isdigit() or P == ""
+
 class PageManager:
     def __init__(self, root: tk.Tk):
+        self.validators = {}
         self._root = root
         self.page: Optional[Page] = None
         self.outer_frame = ttk.Frame(root, style="Outer.TFrame")
@@ -31,10 +47,18 @@ class PageManager:
 
     def start_page(self, page: "Page"):
         self._history = []
+        if not self._is_running:
+            self.validators["numeric"] = (self._root.register(validate_numeric), "%P")
+            self.validators["float"] = (self._root.register(validate_float), "%P")
         self.set_page(page)
         if not self._is_running:
             self._root.mainloop()
         self._is_running = True
+
+
+
+
+
 
     def set_page(self, page: "Page"):
         self._history = self._history[:self._history_idx + 1]

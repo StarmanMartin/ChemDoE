@@ -1,10 +1,9 @@
-import os.path
 import threading
 from tkinter import ttk
 import tkinter as tk
 from typing import Optional, Literal
 
-from chemotion_api import Instance, Reaction, Sample
+from chemotion_api import Reaction, Sample
 from chemotion_api.collection import Collection, RootCollection
 
 from ChemDoE.icons import IconManager
@@ -47,6 +46,7 @@ class ElementTreePage(ToolBarPage):
         self._collection_registry: dict[str, ElementTreePage.TreeElementCollection] = {}
         self._search_task_id = None
         self._element_type = element_type
+
 
     def render(self, container: ttk.Frame):
         super().render(container)
