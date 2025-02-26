@@ -87,3 +87,9 @@ class IconManager():
 
         _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/fav.png')
         self.FAVORITE = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))
+
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/R.png')
+        self.R = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))
+
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/python.png')
+        self.PYTHON = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))

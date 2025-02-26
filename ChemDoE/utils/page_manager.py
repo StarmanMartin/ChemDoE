@@ -11,7 +11,6 @@ def validate_float(P):
         float(P)
         return True
     except ValueError:
-        print("Not a float")
         return False
 
 
@@ -99,6 +98,7 @@ class PageManager:
     def _clear_frame(self):
         for widget in self.outer_frame.winfo_children():
             widget.destroy()
+            del widget
 
 
 class Page(ABC):

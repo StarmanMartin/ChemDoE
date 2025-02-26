@@ -1,6 +1,8 @@
 import configparser
+import glob
 import json
 import os.path
+import shutil
 from pathlib import Path
 from typing import Optional
 
@@ -10,6 +12,8 @@ from chemotion_api import Instance
 
 config_dir = Path(user_config_dir("ChemDoE"))
 templates_dir = config_dir / "templates"
+script_dir = config_dir / "scripts"
+doe_dir = config_dir / "doe"
 config_path = config_dir / "config.ini"
 
 
@@ -26,6 +30,10 @@ class ConfigManager:
             cls._instance._instance_key = None
             cls._instance._chemotion = None
             cls._instance._segments = None
+            cls._instance.python_interpreters = []
+            cls._instance.r_interpreters = []
+            cls._instance.find_all_python_interpreters()
+            cls._instance.find_r_interpreters()
         return cls._instance
 
     @property
@@ -144,6 +152,87 @@ class ConfigManager:
         return self._segments
 
 
-    def save_template(self, template, name):
-        with open(templates_dir / name + '.json', "w") as configfile:
+    def save_doe(self, template, name):
+        os.makedirs(doe_dir, exist_ok=True)
+        with open(doe_dir / (name + '.json'), "w+") as configfile:
             configfile.write(json.dumps(template))
+
+
+    def load_doe(self, name, ):
+        file_path = doe_dir / (name + '.json')
+        if not os.path.exists(file_path):
+            return None
+        with open(file_path, "r") as configfile:
+            return json.loads(configfile.read())
+
+
+
+    def load_scripts(self):
+        file_path = script_dir / 'config.json'
+        if not os.path.exists(file_path):
+            self.save_scripts([])
+        with open(file_path, "r") as configfile:
+            return json.loads(configfile.read())['runs']
+
+
+
+    def save_scripts(self, content: list[dict]):
+        file_path = script_dir / 'config.json'
+        os.makedirs(script_dir, exist_ok=True)
+        with open(file_path, "w+") as configfile:
+            configfile.write(json.dumps({'runs': content}))
+
+
+
+    def save_template(self, template, name):
+        os.makedirs(templates_dir, exist_ok=True)
+        with open(templates_dir / (name + '.json'), "w+") as configfile:
+            configfile.write(json.dumps(template))
+
+    def load_template(self, name):
+        with open(templates_dir / (name + '.json'), "r") as configfile:
+            return json.loads(configfile.read())
+
+    def load_templates(self):
+        os.makedirs(templates_dir, exist_ok=True)
+        return [file for file in templates_dir.iterdir() if file.is_file()]
+
+    def find_all_python_interpreters(self):
+        interpreters = set()
+        interpreters.update(self.find_python_interpreters())
+        interpreters.update(self.find_python_in_common_locations())
+
+        self.python_interpreters  = list(interpreters)
+
+    @staticmethod
+    def find_python_interpreters():
+        possible_interpreters = ["python", "python3", "python3.10", "python3.11", "python3.12", "python3.13"]
+        found_interpreters = []
+
+        for interpreter in possible_interpreters:
+            path = shutil.which(interpreter)
+            if path and path not in found_interpreters:
+                found_interpreters.append(path)
+
+        return found_interpreters
+
+    @staticmethod
+    def find_python_in_common_locations():
+        paths = [
+            "C:\\Python*\\python.exe",  # Common Windows installations
+            "C:\\Users\\*\\AppData\\Local\\Programs\\Python\\Python*\\python.exe",
+            "/usr/bin/python*",  # Linux/macOS system-wide
+            "/usr/local/bin/python*",
+            "/opt/python*",
+        ]
+
+        found = []
+        for pattern in paths:
+            found.extend([x for x in glob.glob(pattern) if not x.endswith("-config")])
+
+        return found
+
+    def find_r_interpreters(self):
+        r_path = shutil.which("R")  # Finds R in PATH
+        self.r_interpreters = [r_path] if r_path else []
+

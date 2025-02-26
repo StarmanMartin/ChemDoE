@@ -143,7 +143,7 @@ class ToolBarPage(Page):
 
         self._fav_reactions = []
         # Create a Combobox with the list of options
-        self.fav_dropdown = ttk.Combobox(toolbar, values=[])
+        self.fav_dropdown = ttk.Combobox(toolbar, values=[], state="readonly")
         self.fav_dropdown.pack(side="left", padx=5, pady=0)
         self.fav_dropdown.bind("<<ComboboxSelected>>", self._on_fav_select)
         self.toolbar = ttk.Frame(toolbar, padding=0)
