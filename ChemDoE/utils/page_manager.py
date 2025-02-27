@@ -56,9 +56,6 @@ class PageManager:
 
 
 
-
-
-
     def set_page(self, page: "Page"):
         self._history = self._history[:self._history_idx + 1]
         self._history.append(page)

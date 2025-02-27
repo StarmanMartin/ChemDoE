@@ -33,9 +33,10 @@ class NewReaction(ElementTreePage):
 
     def render(self, container: ttk.Frame):
         super().render(container)
-
-        left_frame = ScrollableFrame(self.paned_window, relief=tk.SUNKEN, padding=5)
-        self.paned_window.add(left_frame, weight=3)  # weight allows resizing
+        outher_frame = tk.Frame(self.paned_window, bg="red")
+        left_frame = ScrollableFrame(outher_frame, relief=tk.SUNKEN, padding=5)
+        left_frame.pack(side=tk.LEFT, fill="both", expand=True)
+        self.paned_window.add(outher_frame, weight=3)  # weight allows resizing
         left_frame = left_frame.scrollable_frame
         button_row = tk.Frame(left_frame, bg="white")
         self._save_btn = ttk.Button(button_row, style="Save.TButton", text="Save",

@@ -1,5 +1,8 @@
+import os
+import sys
 import threading
 import uuid
+import webbrowser
 from pathlib import Path
 from tkinter import ttk
 import tkinter as tk
@@ -10,20 +13,22 @@ from typing import Optional, Callable
 from ChemDoE.config import ConfigManager
 from ChemDoE.execute import ExecuteManager
 from ChemDoE.icons import IconManager
+
 from ChemDoE.utils.keyboard_shortcuts import add_input_shortcuts
-from ChemDoE.utils.pages import ScrollableFrame
+from ChemDoE.utils.pages import ScrollableFrame, EasyOptionMenu
 
 
 class ScriptOrganizer(tk.Frame):
-    def __init__(self, root, master, **kwargs):
+    def __init__(self, page_manager, master, **kwargs):
         super().__init__(master, **kwargs)
-        self._selected_template = ttk.Combobox(self, values=[], state="readonly")
+        self._selected_template = EasyOptionMenu(self)
         self._fill_dropdown()
         self._run_btn = ttk.Button(self, text="▶", style='Run.TButton', width=2, command=self.run)
         self._selected_template.pack(side=tk.LEFT)
-        self._selected_template.bind("<<ComboboxSelected>>", self._on_select)
+        self._selected_template.on_select = self._on_select
         self._run_btn.pack(side=tk.LEFT, padx=5, pady=0)
-        self._root = root
+        self._root = page_manager.root
+        self._page_manager = page_manager
         self._values = {}
 
     @property
@@ -37,20 +42,16 @@ class ScriptOrganizer(tk.Frame):
     def run(self):
         script = self._scripts[self._selected_template.current()]
         e = ExecuteManager(self._root)
+
         def run():
             e.run(script, self._values)
+
         threading.Thread(target=run).start()
-
-
-
-
-
-
-
 
     def _fill_dropdown(self):
         self._scripts = ConfigManager().load_scripts()
-        self._selected_template.config(values=[x['name'] for x in self._scripts] + ["🛠 Edit configurations"])
+        self._selected_template.values=[x['name'] for x in self._scripts] + ["🛠 Edit configurations", '📖 How to?']
+        self._selected_template.insert_separator(len(self._selected_template.values) - 2)
         self._set_last_run()
 
     def _set_last_run(self):
@@ -60,27 +61,30 @@ class ScriptOrganizer(tk.Frame):
             idx = next((i for i, x in enumerate(self._scripts) if x['id'] == rt), 0)
         self._selected_template.current(idx)
 
-    def _on_select(self, event):
-        if self._selected_template.current() == len(self._scripts):
+    def _on_select(self, val, idx):
+        if idx == len(self._scripts) + 1:
+            webbrowser.open('http://example.com')
+        if idx == len(self._scripts):
             top = ScriptManager(self._root, self._scripts)
 
             def manager_on_close():
+                self._selected_template.silent = True
                 self._fill_dropdown()
-                if top.last_edited == '':
-                    self._set_last_run()
-                else:
+                if top.last_edited != '':
                     self._selected_template.set(top.last_edited)
+                self._selected_template.silent = False
                 top.destroy()
 
             top.protocol("WM_DELETE_WINDOW", manager_on_close)
         else:
-            current_script = self._scripts[self._selected_template.current()]
+            current_script = self._scripts[idx]
             ConfigManager().set('Last', 'run_template', current_script['id'])
 
     @staticmethod
     def set_style(style: ttk.Style):
 
         style.configure('Run.TButton', borderwidth=1, relief='solid', padding=(0, 0))
+        style.configure('FileLoad.TButton', borderwidth=1, relief='solid', padding=2, font=ConfigManager.small_font)
 
         style.map('Run.TButton',
                   foreground=[('!active', 'white'), ('pressed', 'white'), ('active', '#333333')],
@@ -92,7 +96,7 @@ class ScriptForm(ScrollableFrame):
     default_file_text = "... select a file"
 
     def __init__(self, master, scripts, **kwargs):
-        super().__init__(master, **kwargs)
+        super().__init__(master, horizontal=True, **kwargs)
 
         self._interpreter_var = tk.StringVar()
         self._name_var = tk.StringVar(value="New Script")
@@ -133,9 +137,15 @@ class ScriptForm(ScrollableFrame):
 
         # Username label and entry
         ttk.Label(frame, text="Script path:").grid(row=row, column=0, pady=5, sticky="w")
-        self._file_input = ttk.Button(frame, text=self.default_file_text, command=self.open_file)
-        self._file_input.grid(row=row, column=1, sticky="we", pady=5)
-
+        input_frame = ttk.Frame(frame)
+        self._file_input = ttk.Button(input_frame, text=self.default_file_text, command=self.open_file,
+                                      style="FileLoad.TButton")
+        input_frame.grid(row=row, column=1, sticky="we", pady=5)
+        self._file_input.pack(side="left")
+        self._copy_button = ttk.Button(input_frame, text='Open', command=self.copy_file_dir,
+                                       style="FileLoad.TButton")
+        self._copy_button.pack(side="left")
+        self._copy_button.config(state=tk.DISABLED)
         row += 1
 
         # Username label and entry
@@ -148,11 +158,20 @@ class ScriptForm(ScrollableFrame):
         # Username label and entry
         ttk.Label(frame, text="OUTPUT type:").grid(row=row, column=0, pady=5, sticky="w")
         ttk.Combobox(frame, values=['CSV', 'JSON'], textvariable=self._output_type_var).grid(row=row, column=1, pady=5,
-                                                                                            padx=5, sticky="we")
+                                                                                             padx=5, sticky="we")
 
         # You can also add buttons, entries, etc. to the subwindow
         close_button = ttk.Button(self.scrollable_frame, text="Save", command=self.save)
         close_button.pack(pady=10)
+
+    def copy_file_dir(self):
+        foldername = str(self._file_path)
+        if sys.platform.startswith('linux'):
+            os.system('xdg-open "%s"' % foldername)
+        elif sys.platform.startswith('win32'):
+            os.startfile(foldername)
+        elif sys.platform.startswith('foldername'):
+            os.system('open "%s"' % foldername)
 
     @property
     def on_save(self) -> Callable[[dict], None]:
@@ -204,9 +223,6 @@ class ScriptForm(ScrollableFrame):
         # Open a file dialog and return the selected file's path
 
         top = self.winfo_toplevel()
-        top.lift()  # Bring it to the front
-        top.attributes("-topmost", True)  # Keep it on top
-        top.after(100, lambda: top.attributes("-topmost", False))
 
         filename = filedialog.askopenfilename(
             title="Select a File",
@@ -237,10 +253,7 @@ class ScriptForm(ScrollableFrame):
 
     def _set_file(self, filename):
         self._file_path = Path(filename)
-        if len(filename) > 23:
-            bt_text = '...' + filename[-23:]
-        else:
-            bt_text = filename
+        bt_text = filename
         if self._file_path.suffix.lower() == '.py':
             self._type_var.set('Python')
         elif self._file_path.suffix.lower() == '.R':
@@ -248,7 +261,11 @@ class ScriptForm(ScrollableFrame):
         else:
             bt_text = self.default_file_text
             self._file_path = None
-        self._file_input.config(text=bt_text)
+        self._file_input.config(text=bt_text, width=len(bt_text) + 5)
+        if self._file_path is not None:
+            self._copy_button.config(state=f'!{tk.DISABLED}')
+        if self._file_path is None:
+            self._copy_button.config(state=tk.DISABLED)
 
 
 class ScriptManager(tk.Toplevel):
@@ -256,7 +273,11 @@ class ScriptManager(tk.Toplevel):
     def __init__(self, root, scripts):
         super().__init__(root)
         self.title("Run configurations manager")
-        self.geometry("600x300")
+
+        w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+        self.geometry("%dx%d" % (min(w - 100, 1000), min(h - 100, 1000)))
+
+        self.transient(root)
 
         self._scripts = scripts
         self._sf: Optional[ScriptForm] = None
@@ -264,7 +285,7 @@ class ScriptManager(tk.Toplevel):
 
         # Add some content to the subwindow
         label = ttk.Label(self, text="Edit Run configurations")
-        label.pack(pady=5, padx=5)
+        label.pack(side="left", pady=5, padx=5)
 
         paned_window = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
         paned_window.pack(fill=tk.BOTH, expand=True)
@@ -293,7 +314,7 @@ class ScriptManager(tk.Toplevel):
 
         self._tree.bind("<ButtonRelease-1>", self._select_config)
 
-        self._right_frame = ttk.Frame(paned_window, relief=tk.SUNKEN)
+        self._right_frame = ttk.Frame(paned_window, width=500, relief=tk.SUNKEN)
         paned_window.add(self._right_frame, weight=2)
 
     def _fill_scripts(self):

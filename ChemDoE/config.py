@@ -20,6 +20,7 @@ config_path = config_dir / "config.ini"
 class ConfigManager:
     _instance = None
     header_font = ('Arial', 16, 'bold')
+    small_font = ('Arial', 10, 'bold')
 
     def __new__(cls):
         if cls._instance is None:

@@ -1,5 +1,6 @@
 from tkinter import ttk
 import tkinter as tk
+import tkinter.font as tkFont
 
 from chemotion_api import Reaction
 from chemotion_api.labImotion.items.options import FieldType, UNITS
@@ -35,7 +36,7 @@ class DoEPage(ToolBarPage):
         button_frame = tk.Frame(container)
         button_frame.pack(fill='x')
         
-        self._run_manager = ScriptOrganizer(self._page_manager.root, button_frame)
+        self._run_manager = ScriptOrganizer(self._page_manager, button_frame)
         self._run_manager.pack(side='left', padx=5, pady=5)
         ttk.Label(button_frame, text="# columns:").pack(side='left', padx=5, pady=5)
         ttk.Entry(button_frame, textvariable=self._columnes_var, validate="all", width=4,
@@ -56,7 +57,7 @@ class DoEPage(ToolBarPage):
         
 
         values = ConfigManager().load_doe(self._name)
-        if 'values' in values and 'template' in values:
+        if values and 'values' in values and 'template' in values:
             self._values = values['values']
             self._execute_template(values['template'])
         self._run_manager.values = self._values
@@ -135,6 +136,11 @@ class DoEPage(ToolBarPage):
 
         fields = [f"{s[0].label}: {s[1].label}: {s[2].label}" for s in self._get_addable_fields()]
         self._addable_field_dropdown = ttk.Combobox(add_frame, values=fields, state="readonly")
+
+        font = tkFont.Font(font=self._addable_field_dropdown.cget("font"))
+        max_width = max(font.measure(option) for option in fields)  # Get max text width in pixels
+        self._addable_field_dropdown.config(width=max_width // font.measure("0") + 2)
+
         self._addable_field_dropdown.pack(side='left', padx=5, pady=5)
         ttk.Button(add_frame, text='Add properties', style='AddButton.TButton', command=self._add_addable_field).pack(
             side='left', padx=5, pady=5)
@@ -177,7 +183,7 @@ class DoEPage(ToolBarPage):
         self._update_table()
 
     def _add_addable_field(self, *_args):
-        idx = self._addable_field_dropdown.current()
+        idx = self._addable_field_dropdown._current()
         if idx == -1:
             return
         self._additional_fields.append(self._addable_fields[idx])

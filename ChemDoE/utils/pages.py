@@ -2,13 +2,75 @@ import threading
 from tkinter import ttk
 import tkinter as tk
 from tkinter.ttk import Combobox
-from typing import Optional
-
-from chemotion_api import Reaction
+from typing import Optional, Callable
 
 from ChemDoE.config import ConfigManager
 from ChemDoE.icons import IconManager
 from ChemDoE.utils.page_manager import Page
+
+
+class EasyOptionMenu(tk.OptionMenu):
+    def __init__(self, master, *values: str, **kwargs):
+        self.var = tk.StringVar()
+        self.silent = False
+        super().__init__(master, self.var, "", **kwargs)
+        self.values = list(values)
+
+        self._on_select = lambda _v, _i: None
+        self._current = -1
+        self.var.trace_add("write", lambda _a, _b, _c: self.on_select(self.var.get(), self.current_idx))
+
+    @property
+    def on_select(self) -> Callable[[str, int], None]:
+        if self.silent:
+            return lambda _v, _i: None
+        return self._on_select
+
+    @on_select.setter
+    def on_select(self, value: Callable[[str, int], None]):
+        self._on_select = value
+
+    @property
+    def values(self) -> list[str]:
+        return self._values
+
+    @property
+    def current_idx(self):
+        return self._current
+
+    @current_idx.setter
+    def current_idx(self, i):
+        self._set_var_on_select(self.values[i], i)
+
+    @values.setter
+    def values(self, new_options: list[str]):
+        menu = self["menu"]
+        menu.delete(0, "end")  # Clear existing options
+        for idx, option in enumerate(new_options):
+            menu.add_command(label=option,
+                             command=lambda v=option, i=idx: self._set_var_on_select(v, i))  # Update options
+        self.var.set('')
+        self._current = -1
+        self._values = new_options  # Set a default value
+
+    def insert_separator(self, idx: int):
+        self["menu"].insert_separator(idx)
+
+    def _set_var_on_select(self, val, i):
+        self._current = i
+        self.var.set(val)
+
+    def get(self):
+        return self.var.get()
+
+    def current(self, i: int = None):
+        if i is not None:
+            self.current_idx = i
+        return self.current_idx
+
+    def set(self, val: str):
+        idx = self.values.index(val)
+        self._set_var_on_select(val, idx)
 
 
 class ScrollableFrame(ttk.Frame):
@@ -17,19 +79,29 @@ class ScrollableFrame(ttk.Frame):
     It creates a canvas with a vertical scrollbar and places a frame inside the canvas.
     """
 
-    def __init__(self, container, *args, **kwargs):
+    def __init__(self, container, horizontal=False, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
 
         # Create a canvas widget inside the frame
+        self._yscroll_disabled = True
         self.canvas = tk.Canvas(self)
-        self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.grid(row=0, column=0, sticky="nsew")
 
         # Create a vertical scrollbar linked to the canvas
         self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.scrollbar.pack(side="right", fill="y")
-
+        self.scrollbar.grid(row=0, column=1, sticky="ns")
         # Configure the canvas to use the scrollbar
-        self.canvas.configure(xscrollcommand=self.scrollbar.set)
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        if horizontal:
+            self.scrollbar_x = ttk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
+            # Configure the canvas to use the scrollbar
+            self.canvas.configure(xscrollcommand=self.scrollbar_x.set)
+            self.scrollbar_x.grid(row=1, column=0, sticky="ew")
+        else:
+            self.scrollbar_x = None
+
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
         # Create a frame inside the canvas which will hold the content
         self.scrollable_frame = ttk.Frame(self.canvas)
@@ -38,12 +110,6 @@ class ScrollableFrame(ttk.Frame):
         self.window_item = self.canvas.create_window(0, 0, window=self.scrollable_frame, anchor="nw")
 
         # Update the scrollregion of the canvas whenever the size of the inner frame changes
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        )
-
-        # Bind the canvas's resize event to update the width of the inner frame.
         self.canvas.bind(
             "<Configure>",
             self._on_canvas_configure
@@ -67,11 +133,56 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.unbind_all("<Button-4>")
         self.canvas.unbind_all("<Button-5>")
 
+    def update_sc_view(self):
+        self._on_canvas_configure(None)
+
     def _on_canvas_configure(self, event):
         # Set the inner frame's width to match the canvas's width.
-        self.canvas.itemconfig(self.window_item, width=event.width)
+        bbox = self.canvas.bbox("all")
+        self.canvas.configure(scrollregion=bbox)
+        self.update_scroll_visibility(bbox)
+        self.update_frame_width()
+
+    def update_frame_width(self):
+        """Adjust frame width if canvas is wider than the content"""
+        canvas_width = self.canvas.winfo_width()
+        frame_width = self.scrollable_frame.winfo_reqwidth()
+
+        if canvas_width > frame_width:
+            self.canvas.itemconfig(self.window_item, width=canvas_width)
+        else:
+            self.canvas.itemconfig(self.window_item, width=frame_width)
+
+    def update_scroll_visibility(self, bbox):
+        """Show scrollbars only if needed"""
+        canvas_width = self.canvas.winfo_width()
+        canvas_height = self.canvas.winfo_height()
+
+        if bbox:
+            frame_width = bbox[2] - bbox[0]
+            frame_height = bbox[3] - bbox[1]
+
+            # Show/hide vertical scrollbar
+            if frame_height > canvas_height:
+                self._yscroll_disabled = False
+                self.scrollbar.grid(row=0, column=1, sticky="ns")
+                self.canvas.configure(yscrollcommand=self.scrollbar.set)
+            else:
+                self._yscroll_disabled = True
+                self.scrollbar.grid_remove()
+                self.canvas.configure(yscrollcommand="")
+
+            # Show/hide horizontal scrollbar
+            if self.scrollbar_x and frame_width > canvas_width:
+                self.scrollbar_x.grid(row=1, column=0, sticky="ew")
+                self.canvas.configure(xscrollcommand=self.scrollbar_x.set)
+            elif self.scrollbar_x:
+                self.scrollbar_x.grid_remove()
+                self.canvas.configure(xscrollcommand="")
 
     def _on_mouse_scroll(self, event):
+        if self._yscroll_disabled:
+            return
         """Enable scrolling with mouse wheel"""
         if event.num == 4:  # Scroll Up (Linux)
             self.canvas.yview_scroll(-1, "units")
@@ -157,6 +268,7 @@ class ToolBarPage(Page):
         def load():
             self._fav_reactions = [(-1, 'Favorites')] + ConfigManager().favorites_with_names
             self._page_manager.root.after(0, done_load)
+
         def done_load():
             self.fav_dropdown.config(values=[x[1] for x in self._fav_reactions])
             if hasattr(self, 'reaction'):
