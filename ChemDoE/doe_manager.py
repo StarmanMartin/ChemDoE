@@ -173,9 +173,9 @@ class DoEPage(ToolBarPage):
                                                                                                  columnspan=self._columns + 2)
         for i in mats:
             row += 1
-            text = f"{title[0]}: {i.sample.short_label}: {i.sample.molecule['cano_smiles']}"
+            text = f"{title[0]}:{i.sample.id}: {i.sample.short_label}: {i.sample.molecule['cano_smiles']}"
             units = [x.value for x in i.potential_units()]
-            self._render_row(f'S:{i.sample.id}', row, text, units)
+            self._render_row(f'{title[0]}:{i.sample.id}', row, text, units)
         return row
 
     def _remove_addable_field(self, row):
@@ -183,7 +183,7 @@ class DoEPage(ToolBarPage):
         self._update_table()
 
     def _add_addable_field(self, *_args):
-        idx = self._addable_field_dropdown._current()
+        idx = self._addable_field_dropdown.current()
         if idx == -1:
             return
         self._additional_fields.append(self._addable_fields[idx])

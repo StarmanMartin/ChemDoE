@@ -33,7 +33,7 @@ class NewReaction(ElementTreePage):
 
     def render(self, container: ttk.Frame):
         super().render(container)
-        outher_frame = tk.Frame(self.paned_window, bg="red")
+        outher_frame = tk.Frame(self.paned_window, bg="")
         left_frame = ScrollableFrame(outher_frame, relief=tk.SUNKEN, padding=5)
         left_frame.pack(side=tk.LEFT, fill="both", expand=True)
         self.paned_window.add(outher_frame, weight=3)  # weight allows resizing
@@ -155,8 +155,10 @@ class NewReaction(ElementTreePage):
     def _check_change(self):
         if self._origen_data == self._prepare_compare_data():
             self._save_btn.state(["disabled"])
-            if not self._is_new:# Disable the button.
-                self._doe_btn.state(["!disabled"])  # Disable the button.
+            if not self._is_new:
+                self._doe_btn.state(["!disabled"])
+            else:
+                self._doe_btn.state(["disabled"])
         else:
             self._save_btn.state(["!disabled"])
             self._doe_btn.state(["disabled"])

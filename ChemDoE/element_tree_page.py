@@ -65,7 +65,7 @@ class ElementTreePage(ToolBarPage):
     def _render_collection_tree(self, container: ttk.Frame):
         self.collection_tree = ttk.Treeview(container)
 
-        self.collection_tree.heading("#0", text="Collections", anchor="w")
+        self.collection_tree.heading("#0", text=f"Collections & {self._element_type}", anchor="w")
         self._tree_structor.children = self._load_tree(self._tree_structor.col)
         self._fill_tree(self._tree_structor)
 

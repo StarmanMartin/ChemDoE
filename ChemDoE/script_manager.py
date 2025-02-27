@@ -50,7 +50,7 @@ class ScriptOrganizer(tk.Frame):
 
     def _fill_dropdown(self):
         self._scripts = ConfigManager().load_scripts()
-        self._selected_template.values=[x['name'] for x in self._scripts] + ["🛠 Edit configurations", '📖 How to?']
+        self._selected_template.values = [x['name'] for x in self._scripts] + ["🛠 Edit configurations", '📖 How to?']
         self._selected_template.insert_separator(len(self._selected_template.values) - 2)
         self._set_last_run()
 
@@ -63,7 +63,7 @@ class ScriptOrganizer(tk.Frame):
 
     def _on_select(self, val, idx):
         if idx == len(self._scripts) + 1:
-            webbrowser.open('http://example.com')
+            webbrowser.open('https://chemdoe.readthedocs.io/en/latest/executing_scripts.html')
         if idx == len(self._scripts):
             top = ScriptManager(self._root, self._scripts)
 
@@ -85,6 +85,7 @@ class ScriptOrganizer(tk.Frame):
 
         style.configure('Run.TButton', borderwidth=1, relief='solid', padding=(0, 0))
         style.configure('FileLoad.TButton', borderwidth=1, relief='solid', padding=2, font=ConfigManager.small_font)
+        style.configure('Remove.TButton', background='#d9534f')
 
         style.map('Run.TButton',
                   foreground=[('!active', 'white'), ('pressed', 'white'), ('active', '#333333')],
@@ -161,8 +162,11 @@ class ScriptForm(ScrollableFrame):
                                                                                              padx=5, sticky="we")
 
         # You can also add buttons, entries, etc. to the subwindow
-        close_button = ttk.Button(self.scrollable_frame, text="Save", command=self.save)
-        close_button.pack(pady=10)
+        bt_frame = ttk.Frame(self.scrollable_frame)
+        bt_frame.pack(pady=10)
+        close_button = ttk.Button(bt_frame, text="Save", command=self.save)
+        close_button.pack(side='left')
+        self.rm_btn = ttk.Button(bt_frame, text="Remove", command=self.remove, style="Remove.TButton")
 
     def copy_file_dir(self):
         foldername = str(self._file_path)
@@ -186,12 +190,18 @@ class ScriptForm(ScrollableFrame):
         self._set_values(**as_dict)
 
     def _set_values(self, id, name, file_type, input, file, interpreter=None, output=None):
+
         if interpreter is None:
             interpreter = file_type.lower()
         if output is None:
             output = input
         self._set_file(file)
-        self._id = str(id)
+        if id is None or id.startswith("__default_"):
+            self._id = None
+            self.rm_btn.pack_forget()
+        else:
+            self.rm_btn.pack(side='left', padx=5)
+            self._id = str(id)
         self._name_var.set(name)
         self._type_var.set(file_type)
         self._interpreter_var.set(interpreter)
@@ -201,8 +211,16 @@ class ScriptForm(ScrollableFrame):
     def to_dict(self, values=None):
         if values is None:
             values = {}
-        values['id'] = uuid.uuid4().__str__()
+
+        if self._id is None:
+            self._id = values['id'] = uuid.uuid4().__str__()
+        else:
+            values['id'] = self._id
+
         values['name'] = self._name_var.get()
+        if values['name'].startswith('[Default] '):
+            values['name'] = values['name'][len('[Default] '):]
+
         values['file_type'] = self._type_var.get()
         values['input'] = self._input_type_var.get()
         values['output'] = self._output_type_var.get()
@@ -213,11 +231,22 @@ class ScriptForm(ScrollableFrame):
     def save(self):
         if self._id is None:
             values = self.to_dict()
+            self.set_value(values)
             self._scripts.append(values)
         else:
             values = self.to_dict(self._as_dict)
         ConfigManager().save_scripts(self._scripts)
         self._on_save(values)
+
+    def remove(self):
+        if self._id is None:
+            return
+        values = self.to_dict()
+        self._scripts.remove(values)
+        values['id'] = None
+        self.set_value(values)
+        ConfigManager().save_scripts(self._scripts)
+        self._on_save(None)
 
     def open_file(self):
         # Open a file dialog and return the selected file's path
@@ -285,7 +314,7 @@ class ScriptManager(tk.Toplevel):
 
         # Add some content to the subwindow
         label = ttk.Label(self, text="Edit Run configurations")
-        label.pack(side="left", pady=5, padx=5)
+        label.pack(fill="x", pady=5, padx=5)
 
         paned_window = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
         paned_window.pack(fill=tk.BOTH, expand=True)
@@ -330,7 +359,8 @@ class ScriptManager(tk.Toplevel):
 
     def _on_save(self, as_dict: dict):
         self._fill_scripts()
-        self._last_edited = as_dict.get('name', '')
+        if as_dict:
+            self._last_edited = as_dict.get('name', '')
 
     @property
     def last_edited(self) -> str:

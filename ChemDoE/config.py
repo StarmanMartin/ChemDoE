@@ -3,10 +3,13 @@ import glob
 import json
 import os.path
 import shutil
+import sys
+import uuid
 from pathlib import Path
 from typing import Optional
 
 from chemotion_api import Reaction
+from chemotion_api.labImotion.items.options import FieldType
 from platformdirs import user_config_dir
 from chemotion_api import Instance
 
@@ -146,18 +149,20 @@ class ConfigManager:
             segments = self.chemotion.generic_manager().load_all_segments()
             self._segments = []
             for segment in segments:
+                if segment.identifier is None:
+                    segment.identifier = uuid.uuid4().__str__()
+                    segment.save()
                 if segment._element_klass.name == 'reaction' and segment.is_active:
                     for l in segment.properties.layers:
                         for f in l.fields:
-                            self._segments.append((segment, l ,f))
+                            if f.field_type in [FieldType.SYSTEM_DEFINED, FieldType.FORMULA_FIELD, FieldType.INTEGER]:
+                                self._segments.append((segment, l, f))
         return self._segments
-
 
     def save_doe(self, template, name):
         os.makedirs(doe_dir, exist_ok=True)
         with open(doe_dir / (name + '.json'), "w+") as configfile:
             configfile.write(json.dumps(template))
-
 
     def load_doe(self, name, ):
         file_path = doe_dir / (name + '.json')
@@ -166,24 +171,18 @@ class ConfigManager:
         with open(file_path, "r") as configfile:
             return json.loads(configfile.read())
 
-
-
     def load_scripts(self):
         file_path = script_dir / 'config.json'
         if not os.path.exists(file_path):
-            self.save_scripts([])
+            self.save_scripts(self._generate_default_scripts())
         with open(file_path, "r") as configfile:
             return json.loads(configfile.read())['runs']
-
-
 
     def save_scripts(self, content: list[dict]):
         file_path = script_dir / 'config.json'
         os.makedirs(script_dir, exist_ok=True)
         with open(file_path, "w+") as configfile:
             configfile.write(json.dumps({'runs': content}))
-
-
 
     def save_template(self, template, name):
         os.makedirs(templates_dir, exist_ok=True)
@@ -203,7 +202,9 @@ class ConfigManager:
         interpreters.update(self.find_python_interpreters())
         interpreters.update(self.find_python_in_common_locations())
 
-        self.python_interpreters  = list(interpreters)
+        self.python_interpreters = list(interpreters)
+        self.python_interpreters.sort(key=lambda x: len(x))
+        self.python_interpreters.insert(0, sys.executable)
 
     @staticmethod
     def find_python_interpreters():
@@ -234,6 +235,30 @@ class ConfigManager:
         return found
 
     def find_r_interpreters(self):
-        r_path = shutil.which("R")  # Finds R in PATH
+        r_path = shutil.which("R")
+        if not r_path:
+            from tkinter import messagebox
+            messagebox.showwarning("R not installed", "Please install a R interpreter!")
         self.r_interpreters = [r_path] if r_path else []
 
+
+    @staticmethod
+    def _generate_default_scripts():
+        results = []
+        src_dir = Path(__file__).parent / 'examples'
+        os.makedirs(script_dir, exist_ok=True)
+        for i, filename in enumerate(os.listdir(src_dir)):
+            src = src_dir / filename
+            dst = script_dir / filename
+            shutil.copyfile(src, dst)
+            results.append({
+                'id': f'__default_{i}',
+                'name': f'[Default] {filename}',
+                'file_type': 'Python',
+                'input': filename.split('_')[0].upper(),
+                'output': filename.split('_')[0].upper(),
+                'file': dst.__str__(),
+                'interpreter': sys.executable
+            })
+
+        return results

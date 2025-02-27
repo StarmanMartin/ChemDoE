@@ -1,4 +1,5 @@
 import threading
+import webbrowser
 from tkinter import ttk
 import tkinter as tk
 from tkinter.ttk import Combobox
@@ -257,6 +258,12 @@ class ToolBarPage(Page):
         self.fav_dropdown = ttk.Combobox(toolbar, values=[], state="readonly")
         self.fav_dropdown.pack(side="left", padx=5, pady=0)
         self.fav_dropdown.bind("<<ComboboxSelected>>", self._on_fav_select)
+        url = f'{self.instance.host_url}/mydb'
+        if hasattr(self, 'reaction') and self.reaction.id:
+            url += f'/collection/{self.instance.get_root_collection().id}/reaction/{self.reaction.id}'
+
+        ttk.Button(toolbar, image=IconManager().CHEMOTION, command=lambda: webbrowser.open(url)).pack(side="left", padx=5)
+
         self.toolbar = ttk.Frame(toolbar, padding=0)
         self.toolbar.pack(side="left", padx=5)
 
