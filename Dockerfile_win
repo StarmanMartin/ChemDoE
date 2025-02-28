@@ -12,4 +12,4 @@ RUN wine pip install poetry
 RUN wine poetry add pyinstaller
 RUN wine poetry add python-magic-bin
 
-CMD wine poetry install > requirements.txt & wine poetry run python pyinstaller.py
+CMD wine poetry install --no-root & wine poetry run python pyinstaller.py

@@ -10,6 +10,8 @@ from tkinter import filedialog
 import tkinter.font as tkFont
 from typing import Optional, Callable
 
+from chemotion_api import Reaction
+
 from ChemDoE.config import ConfigManager
 from ChemDoE.execute import ExecuteManager
 from ChemDoE.icons import IconManager
@@ -19,7 +21,7 @@ from ChemDoE.utils.pages import ScrollableFrame, EasyOptionMenu
 
 
 class ScriptOrganizer(tk.Frame):
-    def __init__(self, page_manager, master, **kwargs):
+    def __init__(self, page_manager, master, reaction: Reaction, **kwargs):
         super().__init__(master, **kwargs)
         self._selected_template = EasyOptionMenu(self)
         self._fill_dropdown()
@@ -30,6 +32,7 @@ class ScriptOrganizer(tk.Frame):
         self._root = page_manager.root
         self._page_manager = page_manager
         self._values = {}
+        self._reaction = reaction
 
     @property
     def values(self) -> dict:
@@ -41,7 +44,7 @@ class ScriptOrganizer(tk.Frame):
 
     def run(self):
         script = self._scripts[self._selected_template.current()]
-        e = ExecuteManager(self._root)
+        e = ExecuteManager(self._root, self._reaction)
 
         def run():
             e.run(script, self._values)

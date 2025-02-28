@@ -227,9 +227,7 @@ class ToolBarPage(Page):
 
     def _logout(self):
         from ChemDoE.login_manager import LoginManager
-        ConfigManager().set("Chemotion", "host", '', commit=False)
-        ConfigManager().set("Chemotion", "user", '', commit=False)
-        ConfigManager().set("Chemotion", "token", '')
+        ConfigManager().logout()
         self.page_manager.start_page(LoginManager())
 
     def render(self, container: ttk.Frame):

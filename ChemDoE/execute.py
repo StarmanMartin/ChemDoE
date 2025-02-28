@@ -2,17 +2,22 @@ import csv
 import json
 import os
 import re
+import threading
 from pathlib import Path
 from subprocess import Popen, PIPE, STDOUT
 import tkinter as tk
 from tkinter import ttk
 
+from chemotion_api import Reaction
+
+from ChemDoE.config import ConfigManager
+from ChemDoE.icons import IconManager
 from ChemDoE.utils.pages import ScrollableFrame
 
 
 class ExecuteManager(tk.Toplevel):
 
-    def __init__(self, root):
+    def __init__(self, root, reaction: Reaction):
         super().__init__(root)
         self._root = root
         self.title("Run")
@@ -21,6 +26,8 @@ class ExecuteManager(tk.Toplevel):
         self.sf.pack(fill="both", expand=True, padx=10, pady=10)
         self._label = ttk.Label(self.sf.scrollable_frame, text="Running...", anchor="w")
         self._label.pack(fill="x", padx=10, pady=10)
+        self._reaction = reaction
+
 
     def run(self, script, values):
 
@@ -59,14 +66,47 @@ class ExecuteManager(tk.Toplevel):
 
     def load_results(self, out_file_path, out_ft):
         tree = ttk.Treeview(self._label.master)
-        self._label.destroy()
+        self._label.config(text="Results")
         tree.pack(expand=True, fill="x", padx=10, pady=10)
         if out_ft == 'json':
-            self.load_json(tree, out_file_path)
+            self._data = self.load_json(tree, out_file_path)
         elif out_ft == 'csv':
-            self.load_csv(tree, out_file_path)
+            self._data = self.load_csv(tree, out_file_path)
         self._root.after(10, self.sf.update_sc_view)
+        ttk.Button(tree.master, text="Transfer variations", image=IconManager().CHEMOTION, compound="left", command=self.transfer_variations).pack(anchor="w")
         os.remove(out_file_path)
+
+    def transfer_variations(self):
+        self._label.config(text="Transferring...")
+        def save():
+            self._reaction = ConfigManager().chemotion.get_reaction(self._reaction.id)
+            for v in self._reaction.variations[:]:
+                if v.notes.startswith('ChemDoE: '):
+                    self._reaction.variations.remove(v)
+            self._reaction.save(True)
+            for v_name, val in self._data.items():
+                if v_name not in ['UNIT', 'VARIABLE']:
+                    variation = self._reaction.variations.add_new()
+                    variation.notes = f'ChemDoE: {v_name}'
+                    for materials in  ['starting_materials', 'reactants', 'products', 'solvents']:
+                        letter = materials.upper()[0]
+                        for mat in getattr(variation, materials):
+                            key = f"{letter}:{mat.sample.id}"
+                            idx = self._data['VARIABLE'].index(key)
+                            mat.set_quantity(float(val[idx]), str(self._data['UNIT'][idx]))
+                    for key ,prop in variation.properties.items():
+                        key = key.capitalize()
+                        idx = self._data['VARIABLE'].index(key)
+                        prop['value'] = float(val[idx])
+                        prop['unit'] = str(self._data['UNIT'][idx])
+            self._reaction.save()
+            self._root.after(0, lambda: self._label.config(text="Transferred"))
+
+        threading.Thread(target=save).start()
+
+
+
+
 
     @staticmethod
     def load_json(tree, file_path):
@@ -93,6 +133,7 @@ class ExecuteManager(tk.Toplevel):
                     tree.insert("", "end", values=[reader[head][i] for head in headers])
 
             tree.configure(height=new_height)
+            return reader
 
     @staticmethod
     def load_csv(tree, file_path):
@@ -100,7 +141,7 @@ class ExecuteManager(tk.Toplevel):
         with open(file_path, newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile)
             headers = next(reader, None)  # Get headers from the first row
-
+            results = [(h, []) for h in list(headers)]
             if headers:
                 tree["columns"] = headers
                 tree["show"] = "headings"  # Hide default first column
@@ -112,7 +153,10 @@ class ExecuteManager(tk.Toplevel):
 
                 # Insert data into the treeview
                 for row in reader:
+                    for i, v in enumerate(row):
+                        results[i][1].append(v)
                     new_height += 1
                     tree.insert("", "end", values=row)
 
             tree.configure(height=new_height)
+        return dict(results)

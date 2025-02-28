@@ -36,7 +36,7 @@ class DoEPage(ToolBarPage):
         button_frame = tk.Frame(container)
         button_frame.pack(fill='x')
         
-        self._run_manager = ScriptOrganizer(self._page_manager, button_frame)
+        self._run_manager = ScriptOrganizer(self._page_manager, button_frame, self.reaction)
         self._run_manager.pack(side='left', padx=5, pady=5)
         ttk.Label(button_frame, text="# columns:").pack(side='left', padx=5, pady=5)
         ttk.Entry(button_frame, textvariable=self._columnes_var, validate="all", width=4,
@@ -84,9 +84,8 @@ class DoEPage(ToolBarPage):
                   )
 
     def _get_validation_templates(self):
-        self.reaction.variations.add_new()
         v = self.reaction.variations.add_new()
-        self.reaction.variations.pop()
+        self.reaction.variations.remove(v)
         return v
 
     def _get_addable_fields(self):
@@ -138,8 +137,9 @@ class DoEPage(ToolBarPage):
         self._addable_field_dropdown = ttk.Combobox(add_frame, values=fields, state="readonly")
 
         font = tkFont.Font(font=self._addable_field_dropdown.cget("font"))
-        max_width = max(font.measure(option) for option in fields)  # Get max text width in pixels
-        self._addable_field_dropdown.config(width=max_width // font.measure("0") + 2)
+        if len(fields) > 0:
+            max_width = max(font.measure(option) for option in fields)  # Get max text width in pixels
+            self._addable_field_dropdown.config(width=max_width // font.measure("0") + 2)
 
         self._addable_field_dropdown.pack(side='left', padx=5, pady=5)
         ttk.Button(add_frame, text='Add properties', style='AddButton.TButton', command=self._add_addable_field).pack(

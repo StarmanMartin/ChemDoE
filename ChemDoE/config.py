@@ -78,6 +78,13 @@ class ConfigManager:
         except (configparser.NoOptionError, configparser.NoSectionError):
             return default
 
+    def logout(self):
+        self.set("Chemotion", "host", '', commit=False)
+        self.set("Chemotion", "user", '', commit=False)
+        self.set("Chemotion", "token", '')
+        self.chemotion = None
+        self._favorites_reactions = None
+
     @property
     def favorites_with_names(self):
         if self.chemotion is None:
@@ -204,7 +211,9 @@ class ConfigManager:
 
         self.python_interpreters = list(interpreters)
         self.python_interpreters.sort(key=lambda x: len(x))
-        self.python_interpreters.insert(0, sys.executable)
+        if len(self.python_interpreters) == 0:
+            from tkinter import messagebox
+            messagebox.showwarning("Python not installed", "Please install a Python interpreter!")
 
     @staticmethod
     def find_python_interpreters():
