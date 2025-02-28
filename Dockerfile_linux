@@ -1,7 +1,5 @@
 FROM python:3.12
 
-# docker run $(docker build -q .) > dist/ChemDoE.exe
-
 RUN mkdir /app
 WORKDIR /app
 
@@ -11,4 +9,4 @@ RUN python -m pip install --upgrade pip setuptools wheel
 RUN pip install poetry
 RUN poetry add pyinstaller
 
-CMD poetry install --no-root & poetry run python pyinstaller.py
+CMD poetry install --no-root && poetry run python pyinstaller.py

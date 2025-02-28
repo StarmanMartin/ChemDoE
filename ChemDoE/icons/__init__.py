@@ -93,3 +93,6 @@ class IconManager():
 
         _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/python.png')
         self.PYTHON = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))
+
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/info.png')
+        self.INFO = ImageTk.PhotoImage(Image.open(_icon_path).resize((20,20)))

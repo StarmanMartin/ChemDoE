@@ -260,7 +260,8 @@ class ToolBarPage(Page):
         if hasattr(self, 'reaction') and self.reaction.id:
             url += f'/collection/{self.instance.get_root_collection().id}/reaction/{self.reaction.id}'
 
-        ttk.Button(toolbar, image=IconManager().CHEMOTION, command=lambda: webbrowser.open(url)).pack(side="left", padx=5)
+        ttk.Button(toolbar, image=IconManager().CHEMOTION, command=lambda: webbrowser.open(url), style="Info.TButton").pack(side="left", padx=5)
+        ttk.Button(toolbar, image=IconManager().INFO, command=lambda: webbrowser.open('https://chemdoe.readthedocs.io/en/latest'), style="Info.TButton").pack(side="left", padx=5)
 
         self.toolbar = ttk.Frame(toolbar, padding=0)
         self.toolbar.pack(side="left", padx=5)
@@ -312,3 +313,6 @@ class ToolBarPage(Page):
         style.configure("NAV.Active.TButton", **button_default)
         style.configure("NAV.NotActive.TButton", background="#756b6d", foreground="lightgray", **button_default)
         style.map("NAV.NotActive.TButton", background=[("active", "#756b6d")], foreground=[("active", "lightgray")])
+
+        style.configure("Info.TButton", background="#c2e7ff")
+        style.map("Info.TButton", background=[("active", "#d2f7ff")], foreground=[("active", "white")])

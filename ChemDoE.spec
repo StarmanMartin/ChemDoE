@@ -12,7 +12,8 @@ hidden_imports = ["PIL.ImageTk", "PIL._tkinter_finder"]
 
 # Collect static files
 static_files = [
-    ("ChemDoE/icons/", "ChemDoE/icons/")  # Copies assets folder
+    ("ChemDoE/icons/fixed", "ChemDoE/icons/fixed"),
+    ("ChemDoE/examples", "ChemDoE/examples")  # Copies assets folder
 ] + collect_data_files("chemotion_api")
 
 # Create an executable build configuration
