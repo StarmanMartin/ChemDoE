@@ -12,6 +12,7 @@ from chemotion_api import Reaction
 from chemotion_api.labImotion.items.options import FieldType
 from platformdirs import user_config_dir
 from chemotion_api import Instance
+from requests import RequestException
 
 config_dir = Path(user_config_dir("ChemDoE"))
 templates_dir = config_dir / "templates"
@@ -23,7 +24,8 @@ config_path = config_dir / "config.ini"
 class ConfigManager:
     _instance = None
     header_font = ('Arial', 16, 'bold')
-    small_font = ('Arial', 10, 'bold')
+    small_font = ('Arial', 10)
+    normal_font = ('Arial', 12)
 
     def __new__(cls):
         if cls._instance is None:
@@ -92,13 +94,19 @@ class ConfigManager:
         elif self._favorites_reactions is None:
             self._favorites_reactions = []
             for fav_id in self._load_favorites():
-                self._load_add_reaction_fav(fav_id)
+                if not self._load_add_reaction_fav(fav_id):
+                    self.remove_from_favorites(fav_id)
         return self._favorites_reactions
 
-    def _load_add_reaction_fav(self, reaction_id: int, reaction: Optional[Reaction] = None) -> None:
+    def _load_add_reaction_fav(self, reaction_id: int, reaction: Optional[Reaction] = None) -> bool:
         if reaction is None:
-            reaction = self.chemotion.get_reaction(reaction_id)
+            try:
+                reaction = self.chemotion.get_reaction(reaction_id)
+            except RequestException:
+                return False
         self._favorites_reactions.append((reaction_id, f"{reaction.short_label}: {reaction.name}"))
+        return True
+
 
     @property
     def favorites(self):
@@ -115,9 +123,11 @@ class ConfigManager:
         self.favorites_with_names.sort(key=lambda x: int(x[0]))
         self.set(self._instance_key, "Reaction", json.dumps(self.favorites))
 
-    def remove_from_favorites(self, reaction: Reaction):
+    def remove_from_favorites(self, reaction: Reaction | int):
         try:
-            idx = self.favorites.index(int(reaction.id))
+            if isinstance(reaction, Reaction):
+                reaction = reaction.id
+            idx = self.favorites.index(int(reaction))
             del self._favorites_reactions[idx]
             self.set(self._instance_key, "Reaction", json.dumps(self.favorites))
         except ValueError:

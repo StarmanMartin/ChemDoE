@@ -105,7 +105,7 @@ class ScrollableFrame(ttk.Frame):
         self.rowconfigure(0, weight=1)
 
         # Create a frame inside the canvas which will hold the content
-        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame = ttk.Frame(self.canvas, style='Background.TFrame')
 
         # Create a window inside the canvas to hold the inner frame
         self.window_item = self.canvas.create_window(0, 0, window=self.scrollable_frame, anchor="nw")
@@ -314,5 +314,6 @@ class ToolBarPage(Page):
         style.configure("NAV.NotActive.TButton", background="#756b6d", foreground="lightgray", **button_default)
         style.map("NAV.NotActive.TButton", background=[("active", "#756b6d")], foreground=[("active", "lightgray")])
 
+        style.configure("Outer.TFrame", background="white")
         style.configure("Info.TButton", background="#c2e7ff")
         style.map("Info.TButton", background=[("active", "#d2f7ff")], foreground=[("active", "white")])

@@ -170,3 +170,4 @@ cython_debug/
 .pypirc
 /playground.py
 /ChemDoE/icons/fontawesome-icons/
+/test_ana/

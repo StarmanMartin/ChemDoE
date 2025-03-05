@@ -7,11 +7,12 @@ from chemotion_api import Instance, Reaction, Sample
 from chemotion_api.collection import Collection
 from requests import RequestException
 
+from ChemDoE.analyses_uploader import AnalysesUploader
 from ChemDoE.config import ConfigManager
 from ChemDoE.element_tree_page import ElementTreePage
 from ChemDoE.icons import IconManager, LoadingGIF
 from ChemDoE.new_sample import NewSample
-from ChemDoE.utils.dd_manager import DragManager
+from ChemDoE.utils.dd_manager import DragManagerTree
 from ChemDoE.utils.pages import ListRow, ScrollableFrame
 from ChemDoE.doe_manager import DoEPage
 
@@ -21,7 +22,7 @@ class NewReaction(ElementTreePage):
         super().__init__('Sample')
         self._collection = collection
         self._is_new = reaction is None
-        self._dh: Optional[DragManager] = None
+        self._dh: Optional[DragManagerTree] = None
         if self._is_new:
             self.reaction = collection.new_reaction()
             self._name_var = tk.StringVar(value="New Reaction")
@@ -44,7 +45,14 @@ class NewReaction(ElementTreePage):
         self._save_btn.pack(side=tk.LEFT)
         self._doe_btn = ttk.Button(button_row, style="Menu.TButton", text="Adjust DoE",
                               command=lambda *x: self._go_to_doe())
+
         self._doe_btn.pack(side=tk.LEFT)
+        ana_btn = ttk.Button(button_row, style="Menu.TButton", text="Upload Analyses",
+                              command=lambda *x: self._go_to_ana())
+        ana_btn.pack(side=tk.LEFT)
+        if not any(x.notes.startswith('ChemDoE: ') for x in self.reaction.variations):
+            ana_btn.state(["disabled"])
+
         self._fav_btn = ttk.Button(button_row, style="Fav.TButton", text="Add ot Favorites",
                               command=lambda *x: self._toggel_favorites())
         self._fav_btn.pack(side=tk.RIGHT)
@@ -68,7 +76,7 @@ class NewReaction(ElementTreePage):
         entry.grid(row=0, column=1, sticky="ew", padx=(0, 5))
 
 
-        self._dh = DragManager(self.collection_tree, self.page_manager.root)
+        self._dh = DragManagerTree(self.collection_tree, self.page_manager.root)
         self._dh.on_drag_start = self._drag_start
 
         self._render_material_input(left_frame, 'Starting Material', self.reaction.properties['starting_materials'])
@@ -188,6 +196,10 @@ class NewReaction(ElementTreePage):
     def _go_to_doe(self):
         doe = DoEPage(self.reaction)
         self._page_manager.set_page(doe)
+
+    def _go_to_ana(self):
+        ana = AnalysesUploader(self.reaction)
+        self._page_manager.set_page(ana)
 
     def create_new(self, col: Collection):
         self._page_manager.set_page(NewSample(col))

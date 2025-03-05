@@ -382,13 +382,13 @@ files = [
 
 [[package]]
 name = "chemotion-api"
-version = "0.3.53"
+version = "0.3.55"
 description = "A Chemotion python API"
 optional = false
 python-versions = "<4.0,>=3.09"
 files = [
-    {file = "chemotion_api-0.3.53-py3-none-any.whl", hash = "sha256:f3c1b2dfc4a0f468fd9bf8264d7a4bc2661f1a3787d01d221f95742dd4726202"},
-    {file = "chemotion_api-0.3.53.tar.gz", hash = "sha256:7298447753b0758551674f208a122b0ce448c20c4eca335c5592407f02e11b4d"},
+    {file = "chemotion_api-0.3.55-py3-none-any.whl", hash = "sha256:f80309d7ef21560976faf0a4b1aa178e5eae87ea8ac5ba7ded1b87147fc8fa04"},
+    {file = "chemotion_api-0.3.55.tar.gz", hash = "sha256:08639fc710fddf450471ae31b1ca4aad51b02e6bc8118cc953c63d74660c8fa6"},
 ]
 
 [package.dependencies]
@@ -1449,13 +1449,13 @@ files = [
 
 [[package]]
 name = "sphinx"
-version = "8.2.1"
+version = "8.2.3"
 description = "Python documentation generator"
 optional = false
 python-versions = ">=3.11"
 files = [
-    {file = "sphinx-8.2.1-py3-none-any.whl", hash = "sha256:b5d2bb3cdf6207fcacde9f92085d2b97667b05b9c346eaec426ca4be8af505e9"},
-    {file = "sphinx-8.2.1.tar.gz", hash = "sha256:e4b932951b9c18b039f73b72e4e63afe967d90408700ec222b981ac24647c01e"},
+    {file = "sphinx-8.2.3-py3-none-any.whl", hash = "sha256:4405915165f13521d875a8c29c8970800a0141c14cc5416a38feca4ea5d9b9c3"},
+    {file = "sphinx-8.2.3.tar.gz", hash = "sha256:398ad29dee7f63a75888314e9424d40f52ce5a6a87ae88e7071e80af296ec348"},
 ]
 
 [package.dependencies]
@@ -1479,7 +1479,7 @@ sphinxcontrib-serializinghtml = ">=1.1.9"
 
 [package.extras]
 docs = ["sphinxcontrib-websupport"]
-lint = ["betterproto (==2.0.0b6)", "mypy (==1.15.0)", "pypi-attestations (==0.0.21)", "pyright (==1.1.394)", "pytest (>=8.0)", "ruff (==0.9.7)", "sphinx-lint (>=0.9)", "types-Pillow (==10.2.0.20240822)", "types-Pygments (==2.19.0.20250219)", "types-colorama (==0.4.15.20240311)", "types-defusedxml (==0.7.0.20240218)", "types-docutils (==0.21.0.20241128)", "types-requests (==2.32.0.20241016)", "types-urllib3 (==1.26.25.14)"]
+lint = ["betterproto (==2.0.0b6)", "mypy (==1.15.0)", "pypi-attestations (==0.0.21)", "pyright (==1.1.395)", "pytest (>=8.0)", "ruff (==0.9.9)", "sphinx-lint (>=0.9)", "types-Pillow (==10.2.0.20240822)", "types-Pygments (==2.19.0.20250219)", "types-colorama (==0.4.15.20240311)", "types-defusedxml (==0.7.0.20240218)", "types-docutils (==0.21.0.20241128)", "types-requests (==2.32.0.20241016)", "types-urllib3 (==1.26.25.14)"]
 test = ["cython (>=3.0)", "defusedxml (>=0.7.1)", "pytest (>=8.0)", "pytest-xdist[psutil] (>=3.4)", "setuptools (>=70.0)", "typing_extensions (>=4.9)"]
 
 [[package]]
@@ -1812,4 +1812,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.14"
-content-hash = "e1bb040997d0f7711ad12b5fa1a35a88f2162c15f4242b1df23a8340b7625e01"
+content-hash = "1281351ff58e35ad5fe2749ee49132a3af9038043416d0f3161ba05359f91859"

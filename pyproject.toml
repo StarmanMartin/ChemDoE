@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11,<3.14"
 tk = "^0.1.0"
-chemotion-api = "^0.3.51"
+chemotion-api = "0.3.55"
 platformdirs = "^4.3.6"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.13.3"
