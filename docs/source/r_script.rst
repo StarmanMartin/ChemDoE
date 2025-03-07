@@ -19,7 +19,7 @@ In addition, this script tests whether the process works according to the requir
 
 .. code-block:: console
 
-    ChemDoE add_python_script -src "/full/path/to/main.py" -o json -i json
+    ChemDoE add_python_script -src "/full/path/to/main.R" -o json -i json
 
 Simple examples
 ---------------
