@@ -1,10 +1,9 @@
-import csv
 import json
 import os
 import re
 import threading
 from pathlib import Path
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -12,6 +11,8 @@ from chemotion_api import Reaction
 
 from ChemDoE.config import ConfigManager
 from ChemDoE.icons import IconManager
+from ChemDoE.registration.loader import read_csv, read_json
+from ChemDoE.registration.result_validater import validate_results
 from ChemDoE.utils.pages import ScrollableFrame
 
 
@@ -65,7 +66,7 @@ class ExecuteManager(tk.Toplevel):
 
     def load_results(self, out_file_path, out_ft):
         tree = ttk.Treeview(self._label.master)
-        self._label.config(text="Results")
+        self._label.config(text=self._label.cget('text') + "\nResults")
         tree.pack(expand=True, fill="x", padx=10, pady=10)
         if out_ft == 'json':
             self._data = self.load_json(tree, out_file_path)
@@ -108,50 +109,15 @@ class ExecuteManager(tk.Toplevel):
         threading.Thread(target=save).start()
 
     def _validate_json_results(self, data):
-        self._errors = []
-        if 'VARIABLE' not in data:
-            self._errors.append(f'VARIABLE must be a key in the result JSON!')
-        if 'UNIT' not in data:
-            self._errors.append(f'UNIT must be a key in the result JSON!')
-        array_length = None
-        for k, val in data.items():
-            if not isinstance(val, list):
-                self._errors.append(f'{k} must be an array!')
-                continue
-
-            if array_length is None:
-                array_length = len(val)
-            elif len(val) != array_length:
-                self._errors.append(f'{k} must have {array_length} elements!')
-
-            if k not in ['UNIT', 'VARIABLE']:
-                try:
-                    for i, x in enumerate(val):
-                        val[i] = float(x)
-                except ValueError:
-                    self._errors.append(f'{k} must be an array of numbers!')
+        self._errors = validate_results(data)
 
         return len(self._errors) == 0
 
     def load_json(self, tree, file_path):
-        with open(file_path, 'r', encoding='utf-8') as json_file:
-            reader = json.loads(json_file.read())
-            return self._render_tree(tree, reader)
+            return self._render_tree(tree, read_json(file_path))
 
     def load_csv(self, tree, file_path):
-
-        with open(file_path, newline='', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile)
-            headers = next(reader, None)  # Get headers from the first row
-            results = {}
-            if headers:
-                for h in list(headers):
-                    results[h] = []
-                for row in reader:
-                    for i, v in enumerate(row):
-                        results[headers[i]].append(v)
-
-            return self._render_tree(tree, results)
+            return self._render_tree(tree, read_csv(file_path))
 
     def _render_tree(self, tree, reader):
         if not self._validate_json_results(reader):

@@ -1,0 +1,6 @@
+S:11,mol,1.0,2.0,3.0
+R:12,mol,0.1,0.2,0.3
+P:13,mol,4.0,5.0,6.0
+Temperature,°C,100.0,200.0,300.0
+Duration,Second(s),0.03,0.04,0.05
+c5576381-4e86-4abb-b587-e4effefdf60a__clean__duration,min,10.0,20.0,30.0

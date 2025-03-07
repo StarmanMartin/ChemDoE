@@ -107,7 +107,6 @@ class ConfigManager:
         self._favorites_reactions.append((reaction_id, f"{reaction.short_label}: {reaction.name}"))
         return True
 
-
     @property
     def favorites(self):
         return [x[0] for x in self.favorites_with_names]
@@ -191,15 +190,15 @@ class ConfigManager:
     def load_scripts(self):
         file_path = script_dir / 'config.json'
         if not os.path.exists(file_path):
-            self.save_scripts(self._generate_default_scripts())
+            self.save_scripts([])
         with open(file_path, "r") as configfile:
-            return json.loads(configfile.read())['runs']
+            return json.loads(configfile.read())['runs'] + self._generate_default_scripts()
 
     def save_scripts(self, content: list[dict]):
         file_path = script_dir / 'config.json'
         os.makedirs(script_dir, exist_ok=True)
         with open(file_path, "w+") as configfile:
-            configfile.write(json.dumps({'runs': content}))
+            configfile.write(json.dumps({'runs': [x for x in content if not x['id'].startswith('__default_')]}))
 
     def save_template(self, template, name):
         os.makedirs(templates_dir, exist_ok=True)
@@ -253,31 +252,85 @@ class ConfigManager:
 
         return found
 
+    @staticmethod
+    def find_win_r_executables() -> list[str]:
+        possible_paths = [
+            os.path.join(os.getenv("ProgramFiles"), "R"),  # Standard install location
+            os.path.join(os.getenv("ProgramFiles(x86)"), "R"),  # 32-bit install location
+            os.path.join(os.getenv("LOCALAPPDATA"), "Programs", "R"),  # Some custom installs
+            "C:\\R"  # Occasionally used custom path
+        ]
+
+        found_executables = []
+
+        # Search for R.exe in common paths
+        for base_path in possible_paths:
+            if base_path and os.path.exists(base_path):
+                found_executables.extend(glob.glob(os.path.join(base_path, "**", "Rscript.exe"), recursive=True))
+
+        # Search in system PATH
+        for path in os.getenv("PATH", "").split(os.pathsep):
+            r_exe = os.path.join(path, "Rscript.exe")
+            if os.path.exists(r_exe):
+                found_executables.append(str(r_exe))
+
+        return found_executables
+
     def find_r_interpreters(self):
-        r_path = shutil.which("R")
+        r_path = shutil.which("Rscript")
         if not r_path:
+            r_path = []
+        else:
+            r_path = [r_path]
+
+        if os.name == "nt":
+            r_path += self.find_python_interpreters()
+
+        if len(r_path) == 0:
             from tkinter import messagebox
             messagebox.showwarning("R not installed", "Please install a R interpreter!")
-        self.r_interpreters = [r_path] if r_path else []
 
+        self.r_interpreters = r_path
 
-    @staticmethod
-    def _generate_default_scripts():
+    def _generate_default_scripts(self):
         results = []
         src_dir = Path(__file__).parent / 'examples'
         os.makedirs(script_dir, exist_ok=True)
-        for i, filename in enumerate(os.listdir(src_dir)):
-            src = src_dir / filename
-            dst = script_dir / filename
-            shutil.copyfile(src, dst)
-            results.append({
-                'id': f'__default_{i}',
-                'name': f'[Default] {filename}',
-                'file_type': 'Python',
-                'input': filename.split('_')[0].upper(),
-                'output': filename.split('_')[0].upper(),
-                'file': dst.__str__(),
-                'interpreter': sys.executable
-            })
+        if len(self.python_interpreters) >= 0:
+            for i, filename in enumerate(os.listdir(src_dir)):
+                src = src_dir / filename
+                if src.suffix != '.py':
+                    continue
+                dst = script_dir / filename
+                if not dst.exists():
+                    shutil.copyfile(src, dst)
+                results.append({
+                    'id': f'__default_P{i}',
+                    'name': f'[Default] {filename}',
+                    'file_type': 'Python',
+                    'input': filename.split('_')[0].upper(),
+                    'output': filename.split('_')[0].upper(),
+                    'file': dst.__str__(),
+                    'interpreter': self.python_interpreters[0]
+                })
+        if len(self.r_interpreters) >= 0:
+            for i, filename in enumerate(os.listdir(src_dir)):
+                src = src_dir / filename
+                dst = script_dir / filename
+
+                if src.suffix != '.R':
+                    continue
+                if not dst.exists():
+                    shutil.copyfile(src, dst)
+                results.append({
+                    'id': f'__default_R{i}',
+                    'name': f'[Default] {filename}',
+                    'file_type': 'R',
+                    'input': filename.split('_')[0].upper(),
+                    'output': filename.split('_')[0].upper(),
+                    'file': str(dst),
+                    'interpreter': self.r_interpreters[0]
+                })
+
 
         return results

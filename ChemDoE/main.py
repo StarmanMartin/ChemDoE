@@ -7,9 +7,7 @@ from ChemDoE.utils.page_manager import PageManager
 
 
 
-
-
-if __name__ == '__main__':
+def run():
     root = tk.Tk()
 
     photo = IconManager().CHEMOTION
@@ -20,3 +18,7 @@ if __name__ == '__main__':
     root.geometry("%dx%d+0+0" % (max(w, 700), max(h, 600)))
     pm = PageManager(root)
     pm.start_page(LoginManager())
+
+
+if __name__ == '__main__':
+    run()

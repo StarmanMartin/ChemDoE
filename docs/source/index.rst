@@ -15,4 +15,6 @@ This tool belongs in the software orbit of the ELN `Chemotion <https://www.chemo
 
    getting_started
    executing_scripts
+   python_script
+   r_script
 

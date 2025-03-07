@@ -1,0 +1,7 @@
+VARIABLE,UNIT,Variation.0,Variation.1,Variation.2,Variation.3,Variation.4,Variation.5,Variation.6,Variation.7,Variation.8,Variation.9,Variation.10
+S:11,mol,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0,3.0
+R:12,mol,0.3,0.1,0.2,0.3,0.1,0.2,0.3,0.1,0.2,0.3,0.1
+P:13,mol,5.0,4.0,5.0,6.0,5.0,6.0,4.0,6.0,4.0,5.0,4.0
+Temperature,°C,300.0,300.0,200.0,100.0,100.0,300.0,300.0,200.0,200.0,100.0,100.0
+Duration,Second(s),0.03,0.04,0.05,0.03,0.04,0.04,0.05,0.03,0.04,0.05,0.03
+c5576381-4e86-4abb-b587-e4effefdf60a__clean__duration,min,10.0,10.0,10.0,20.0,20.0,20.0,20.0,30.0,30.0,30.0,10.0

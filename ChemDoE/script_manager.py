@@ -127,7 +127,7 @@ class ScriptForm(ScrollableFrame):
 
         # Username label and entry
         ttk.Label(frame, text="Script type:").grid(row=row, column=0, pady=5, sticky="w")
-        ttk.Combobox(frame, values=['R', 'Python'], textvariable=self._type_var).grid(row=row, column=1, pady=5, padx=5,
+        ttk.Combobox(frame, values=['R', 'Python'], textvariable=self._type_var, state="readonly").grid(row=row, column=1, pady=5, padx=5,
                                                                                       sticky="we")
 
         row += 1
@@ -154,14 +154,14 @@ class ScriptForm(ScrollableFrame):
 
         # Username label and entry
         ttk.Label(frame, text="INPUT type:").grid(row=row, column=0, pady=5, sticky="w")
-        ttk.Combobox(frame, values=['CSV', 'JSON'], textvariable=self._input_type_var).grid(row=row, column=1, pady=5,
+        ttk.Combobox(frame, values=['CSV', 'JSON'], textvariable=self._input_type_var, state="readonly").grid(row=row, column=1, pady=5,
                                                                                             padx=5, sticky="we")
 
         row += 1
 
         # Username label and entry
         ttk.Label(frame, text="OUTPUT type:").grid(row=row, column=0, pady=5, sticky="w")
-        ttk.Combobox(frame, values=['CSV', 'JSON'], textvariable=self._output_type_var).grid(row=row, column=1, pady=5,
+        ttk.Combobox(frame, values=['CSV', 'JSON'], textvariable=self._output_type_var, state="readonly").grid(row=row, column=1, pady=5,
                                                                                              padx=5, sticky="we")
 
         # You can also add buttons, entries, etc. to the subwindow
@@ -288,7 +288,7 @@ class ScriptForm(ScrollableFrame):
         bt_text = filename
         if self._file_path.suffix.lower() == '.py':
             self._type_var.set('Python')
-        elif self._file_path.suffix.lower() == '.R':
+        elif self._file_path.suffix.lower() == '.r':
             self._type_var.set('R')
         else:
             bt_text = self.default_file_text

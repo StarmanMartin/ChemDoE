@@ -34,6 +34,8 @@ class NewReaction(ElementTreePage):
 
     def render(self, container: ttk.Frame):
         super().render(container)
+        if not self._is_new:
+            self.reaction = self.instance.get_reaction(self.reaction.id)
         outher_frame = tk.Frame(self.paned_window, bg="")
         left_frame = ScrollableFrame(outher_frame, relief=tk.SUNKEN, padding=5)
         left_frame.pack(side=tk.LEFT, fill="both", expand=True)

@@ -3,6 +3,8 @@ Getting Started
 
 This instrument is to be integrated into the software ecosystem of the ELN Chemotion. It is a graphical user interface (GUI) client that facilitates the utilization of design of experiment algorithms to populate the variations of a reaction in Chemotion.
 
+.. _sec-install:
+
 How to run it
 -------------
 
@@ -13,13 +15,32 @@ Download version 0.1.0:
 - `Windows <https://github.com/StarmanMartin/ChemDoE/releases/download/v0.1.0/ChemDoE.exe>`_
 - `Linux <https://github.com/StarmanMartin/ChemDoE/releases/download/v0.1.0/ChemDoE>`_
 
+Alternatively, you can also install it via PyPI. To do this, simply enter the following command in the console:
+
+.. code-block:: console
+
+    pip install ChemDoE
+
+Then run:
+
+.. code-block:: console
+
+    ChemDoE run
+
 Requirements
 ------------
 
-To leverage the full potential of ChemDoE, it is essential to have an accessible `R <https://www.r-project.org/>`_ interpreter and a `Python <https://www.python.org/downloads/>`_ interpreter (version >= 3.12)installed on your device.
+To leverage the full potential of ChemDoE, it is essential to have an accessible `R <https://www.r-project.org/>`_ interpreter and a `Python <https://www.python.org/downloads/>`_ interpreter (version >= 3.12) installed on your device.
 
 
 First execution
 ---------------
 
 1. Simpy run the executable file downloaded from Github.
+
+.. figure:: _static/login_screen.png
+   :alt: Login screen
+   :width: 90%
+   :align: center
+
+   **Figure 1:** ChemDoE login screen.
