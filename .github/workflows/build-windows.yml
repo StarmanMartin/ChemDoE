@@ -17,8 +17,23 @@ jobs:
       - name: Build exe using docker images
         run: docker run -v ./dist:/app/dist $(docker build -q -f Dockerfile_win .)
 
+      - name: Set up Wine and osslsigncode
+        run: sudo apt update && sudo apt install -y wine osslsigncode
+
+      - name: Decode the code signing certificate and key
+        run: |
+          echo "${{ secrets.CODE_SIGNING_CERT }}" | base64 --decode > cert.pem
+          echo "${{ secrets.CODE_SIGNING_KEY }}" | base64 --decode > key.pem
+
+      - name: Sign executable with osslsigncode
+        run: |
+          osslsigncode sign -certs cert.pem -key key.pem \
+            -n "ChemDoE" -i "https://chemotion.net" \
+            -t "http://timestamp.digicert.com" \
+            -in dist/ChemDoE.exe -out dist/ChemDoE_signed.exe
+
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-executable
-          path: ./dist/ChemDoE.exe
+          path: ./dist/ChemDoE_signed.exe

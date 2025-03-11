@@ -1,3 +1,4 @@
+import threading
 from tkinter import ttk, messagebox
 import tkinter as tk
 from urllib.parse import urlparse
@@ -69,15 +70,24 @@ class LoginManager(Page):
 
     def _validate_input(self, *args):
         """Check if input is a valid email and update the checkmark label."""
-        host = self.host_var.get()
-        instance = Instance(host)
-        try:
-            urlparse(host)
-            instance.test_connection()
-            self.check_label.config(text="✅", foreground="green")
-            ConfigManager().set('Last', 'Host', host)
-        except:
-            self.check_label.config(text="", foreground="green")
+        def update_checkmark(is_valide):
+            if is_valide:
+                self.check_label.config(text="✅", foreground="green")
+            else:
+                self.check_label.config(text="", foreground="green")
+
+        def run_test():
+            host = self.host_var.get()
+            instance = Instance(host)
+            try:
+                urlparse(host)
+                instance.test_connection()
+                ConfigManager().set('Last', 'Host', host)
+                self.page_manager.root.after(0, update_checkmark, True)
+            except:
+                self.page_manager.root.after(0, update_checkmark, False)
+
+        threading.Thread(target=run_test, daemon=True).start()
 
     def leave(self):
         self.page_manager.root.unbind("<Return>")

@@ -89,6 +89,7 @@ class ScriptOrganizer(tk.Frame):
         style.configure('Run.TButton', borderwidth=1, relief='solid', padding=(0, 0))
         style.configure('FileLoad.TButton', borderwidth=1, relief='solid', padding=2, font=ConfigManager.small_font)
         style.configure('Remove.TButton', background='#d9534f')
+        style.configure('Output.TLabel', background='#000000', foreground="#FFFFFF", padding=(5,5), borderwidth=1, relief='solid')
 
         style.map('Run.TButton',
                   foreground=[('!active', 'white'), ('pressed', 'white'), ('active', '#333333')],

@@ -382,18 +382,18 @@ files = [
 
 [[package]]
 name = "chemotion-api"
-version = "0.3.55"
+version = "0.3.57"
 description = "A Chemotion python API"
 optional = false
 python-versions = "<4.0,>=3.09"
 files = [
-    {file = "chemotion_api-0.3.55-py3-none-any.whl", hash = "sha256:f80309d7ef21560976faf0a4b1aa178e5eae87ea8ac5ba7ded1b87147fc8fa04"},
-    {file = "chemotion_api-0.3.55.tar.gz", hash = "sha256:08639fc710fddf450471ae31b1ca4aad51b02e6bc8118cc953c63d74660c8fa6"},
+    {file = "chemotion_api-0.3.57-py3-none-any.whl", hash = "sha256:62343ba0d08c3f951f077b0b124e8a26667d73f4e8c2aa67a86c95a730568880"},
+    {file = "chemotion_api-0.3.57.tar.gz", hash = "sha256:1bbaa834622b758d49cb3558b501da0c3e7f0ebc15a75d2b8d761419522b1bb0"},
 ]
 
 [package.dependencies]
 click = ">=8.1.7,<9.0.0"
-jinja2 = ">=3.1.4,<4.0.0"
+jinja2 = ">=3.1.6,<4.0.0"
 jsonschema = ">=4.23.0,<5.0.0"
 python-dateutil = ">=2.9.0,<3.0.0"
 python-magic = ">=0.4.27,<0.5.0"
@@ -1454,13 +1454,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "75.8.2"
+version = "76.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "setuptools-75.8.2-py3-none-any.whl", hash = "sha256:558e47c15f1811c1fa7adbd0096669bf76c1d3f433f58324df69f3f5ecac4e8f"},
-    {file = "setuptools-75.8.2.tar.gz", hash = "sha256:4880473a969e5f23f2a2be3646b2dfd84af9028716d398e46192f84bc36900d2"},
+    {file = "setuptools-76.0.0-py3-none-any.whl", hash = "sha256:199466a166ff664970d0ee145839f5582cb9bca7a0a3a2e795b6a9cb2308e9c6"},
+    {file = "setuptools-76.0.0.tar.gz", hash = "sha256:43b4ee60e10b0d0ee98ad11918e114c70701bc6051662a9a675a0496c1a158f4"},
 ]
 
 [package.extras]
@@ -1870,4 +1870,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.14"
-content-hash = "999e87e565f398c4e3b8c43dd4ab72039d97de105d62f4f8d77419f3fe176d91"
+content-hash = "d9eeff3c4a08e5f5753c93251e8d654da38ccaf194269b6a3d9aa276509f6e7d"

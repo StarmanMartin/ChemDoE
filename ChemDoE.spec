@@ -1,8 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+
 import sys
 import os
+
+version_file = None
+if os.name == "nt":
+    from PyInstaller.utils.win32.versioninfo import VSVersionInfo
+    version_file = VSVersionInfo('build_scripts/win_version_info.txt')
 
 # Define the script name
 script_name = "ChemDoE/main.py"
@@ -42,7 +48,8 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,  # Set True if you want a console window
-    icon="ChemDoE/icons/fixed/chemotion-full.ico"  # Change this to your icon file
+    icon="ChemDoE/icons/fixed/chemotion-full.ico",  # Change this to your icon file
+    # version=version_file
 )

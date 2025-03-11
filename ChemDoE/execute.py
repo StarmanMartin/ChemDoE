@@ -25,7 +25,7 @@ class ExecuteManager(tk.Toplevel):
         self.geometry("600x300")
         self.sf = ScrollableFrame(self, horizontal=True)
         self.sf.pack(fill="both", expand=True, padx=10, pady=10)
-        self._label = ttk.Label(self.sf.scrollable_frame, text="Running...", anchor="w")
+        self._label = ttk.Label(self.sf.scrollable_frame, text="Running...", anchor="w", style="Output.TLabel")
         self._label.pack(fill="x", padx=10, pady=10)
         self._reaction = reaction
         self._errors = []
@@ -59,7 +59,7 @@ class ExecuteManager(tk.Toplevel):
                   )
         lines = ""
         for line in iter(p.stdout.readline, ''):
-            lines += line
+            lines += ' > ' + line
             self._root.after(0, lambda: self._label.config(text=lines))
         os.remove(file_path)
         self._root.after(10, self.load_results, out_file_path, out_ft)
@@ -74,13 +74,16 @@ class ExecuteManager(tk.Toplevel):
             self._data = self.load_csv(tree, out_file_path)
         if self._data is not None:
             self._root.after(10, self.sf.update_sc_view)
-            ttk.Button(tree.master, text="Transfer variations", image=IconManager().CHEMOTION, compound="left",
-                       command=self.transfer_variations).pack(anchor="w")
+            self._transfer_btn = ttk.Button(tree.master, text="Transfer variations", image=IconManager().CHEMOTION, compound="left",
+                       command=self.transfer_variations)
+            self._transfer_btn.pack(anchor="w")
             self.sf.update_sc_view()
         os.remove(out_file_path)
 
     def transfer_variations(self):
-        self._label.config(text="Transferring...")
+        origen_text = self._transfer_btn.cget('text')
+        self._transfer_btn.config(text="Transferring...")
+        self._transfer_btn.state(["disabled"])  # Disable the button.
 
         def save():
             self._reaction = ConfigManager().chemotion.get_reaction(self._reaction.id)
@@ -104,7 +107,8 @@ class ExecuteManager(tk.Toplevel):
                         prop['value'] = float(val[idx])
                         prop['unit'] = str(self._data['UNIT'][idx])
             self._reaction.save()
-            self._root.after(0, lambda: self._label.config(text="Transferred"))
+            self._root.after(0, lambda: self._transfer_btn.config(text=origen_text))
+            self._root.after(0, lambda: self._transfer_btn.state(["!disabled"]))
 
         threading.Thread(target=save).start()
 

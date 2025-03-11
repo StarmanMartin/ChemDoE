@@ -3,10 +3,7 @@ FROM tobix/pywine:3.12
 RUN mkdir /app
 WORKDIR /app
 
-COPY . .
+COPY build_scripts ./build_scripts
 
-RUN wine python -m pip install --upgrade pip setuptools wheel
-RUN wine pip install poetry
-RUN wine poetry add pyinstaller
-
-CMD wine poetry install --no-root && wine poetry run python ./pyinstaller.py
+# CMD tail -f /dev/null
+ENTRYPOINT ./build_scripts/run_win.sh

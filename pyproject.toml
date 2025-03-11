@@ -13,7 +13,7 @@ ChemDoE = "ChemDoE.cli:cli"
 [tool.poetry.dependencies]
 python = "^3.11,<3.14"
 tk = "^0.1.0"
-chemotion-api = "0.3.55"
+chemotion-api = "0.3.57"
 platformdirs = "^4.3.6"
 requests = "^2.32.3"
 beautifulsoup4 = "^4.13.3"
@@ -22,6 +22,7 @@ cairosvg = "^2.7.1"
 pytest = "^8.3.5"
 click = "^8.1.8"
 python-magic-bin = {version = "^0.4.14", platform = "win32"}
+pyinstaller = "^6.12.0"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.12.0"
