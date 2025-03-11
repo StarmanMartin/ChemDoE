@@ -22,13 +22,12 @@ jobs:
 
       - name: Decode the code signing certificate and key
         run: |
-          echo "${{ secrets.CODE_SIGNING_CERT }}" | base64 --decode > cert.pem
-          echo "${{ secrets.CODE_SIGNING_KEY }}" | base64 --decode > key.pem
+          echo "${{ secrets.CODE_SIGNING_CERT }}" | base64 --decode > certificate.pfx
 
       - name: Sign executable with osslsigncode
         run: |
-          osslsigncode sign -certs cert.pem -key key.pem \
-            -n "ChemDoE" -i "https://chemotion.net" \
+          osslsigncode sign -pkcs12 certificate.pfx -pass "${{ secrets.CODE_SIGNING_CERT_PASS }}" \
+            -n "Your App Name" -i "https://chemotion.net" \
             -t "http://timestamp.digicert.com" \
             -in dist/ChemDoE.exe -out dist/ChemDoE_signed.exe
 
