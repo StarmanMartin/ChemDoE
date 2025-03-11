@@ -26,10 +26,12 @@ jobs:
 
       - name: Sign executable with osslsigncode
         run: |
+          chmod -R u+w dist
+          chmod u+w dist/ChemDoE_signed.exe
           osslsigncode sign -pkcs12 certificate.pfx -pass "${{ secrets.CODE_SIGNING_CERT_PASS }}" \
             -n "Your App Name" -i "https://chemotion.net" \
             -t "http://timestamp.digicert.com" \
-            -in dist/ChemDoE.exe -out dist/ChemDoE_signed.exe
+            -in dist/ChemDoE.exe -out ./dist/ChemDoE_signed.exe
 
       - name: Upload EXE as an Artifact
         uses: actions/upload-artifact@v4
