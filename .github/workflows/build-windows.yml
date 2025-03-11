@@ -17,6 +17,12 @@ jobs:
       - name: Build exe using docker images
         run: docker run -v .:/app $(docker build -q -f Dockerfile_win .)
 
+      - name: Upload EXE as an Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-executable
+          path: ./dist/ChemDoE.exe
+
       - name: Set up Wine and osslsigncode
         run: sudo apt update && sudo apt install -y wine osslsigncode
 
@@ -31,8 +37,8 @@ jobs:
             -t "http://timestamp.digicert.com" \
             -in dist/ChemDoE.exe -out ./ChemDoE_signed.exe
 
-      - name: Upload EXE as an Artifact
+      - name: Upload singed EXE as an Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-executable
+          name: signed-windows-executable
           path: ./ChemDoE_signed.exe
