@@ -39,13 +39,13 @@ class ExecuteManager(tk.Toplevel):
         file_path = str(fp.parent / file_name)
 
         if ft == 'json':
-            with open(file_path, 'w+') as f:
+            with open(file_path, 'w+', encoding="utf-8") as f:
                 f.write(json.dumps(values, indent=4))
         else:
             res = []
             for key, val in values.items():
                 res.append(','.join([key] + [str(x) for x in val]))
-            with open(file_path, 'w+') as f:
+            with open(file_path, 'w+', encoding="utf-8") as f:
                 f.write('\n'.join(res))
         out_file_path = str(fp.parent / f'out_{file_name}.{out_ft}')
         cmd = [script['interpreter'], script['file'], file_path, out_file_path]
@@ -61,6 +61,7 @@ class ExecuteManager(tk.Toplevel):
         for line in iter(p.stdout.readline, ''):
             lines += ' > ' + line
             self._root.after(0, lambda: self._label.config(text=lines))
+        p.wait(3600)
         os.remove(file_path)
         self._root.after(10, self.load_results, out_file_path, out_ft)
 

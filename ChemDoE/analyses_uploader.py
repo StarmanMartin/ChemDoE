@@ -128,15 +128,15 @@ class AnalysesUploader(ToolBarPage):
 
         win.title("Transfer")
         win.transient(self.page_manager.root)
-        win.wm_overrideredirect(True)
+        # win.wm_overrideredirect(True)
         win.attributes('-topmost', 'true')
-        win.resizable(False, False)
         win_width = 500
         win_height = 200
         x = self.page_manager.root.winfo_x() + self.page_manager.root.winfo_width() // 2 - win_width // 2
         y = self.page_manager.root.winfo_y() + self.page_manager.root.winfo_height() // 2 - win_height // 2
 
         win.geometry(f"{win_width}x{win_height}+{x}+{y}")
+        win.resizable(False, False)
 
 
         label = ttk.Label(win, wraplength=15*30, text="Are you sure you want tp transfer the analyses files", style='Header.TLabel')

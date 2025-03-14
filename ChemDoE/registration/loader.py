@@ -20,7 +20,7 @@ def read_json(file_path: str | LiteralString | Path) -> dict:
 
 
 def read_csv(file_path: str | LiteralString | Path) -> dict:
-    with open(file_path, newline='', encoding='utf-8') as csvfile:
+    with open(file_path, newline='', encoding='utf-8', errors='ignore') as csvfile:
         reader = csv.reader(csvfile)
         headers = next(reader, None)  # Get headers from the first row
         results = {}
