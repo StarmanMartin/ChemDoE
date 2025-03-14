@@ -13,7 +13,7 @@ ChemDoE is a GUI client that has been developed using the Python programming lan
 Download version 0.2.0:
 
 - `Windows <https://github.com/StarmanMartin/ChemDoE/releases/download/v0.2.0/ChemDoE.exe>`_
-- `Linux <https://github.com/StarmanMartin/ChemDoE/releases/download/v0.2.0ChemDoE>`_
+- `Linux <https://github.com/StarmanMartin/ChemDoE/releases/download/v0.2.0/ChemDoE>`_
 
 Alternatively, you can also install it via PyPI. To do this, simply enter the following command in the console:
 
