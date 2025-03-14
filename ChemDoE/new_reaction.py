@@ -33,9 +33,18 @@ class NewReaction(ElementTreePage):
         self._origen_data = self._prepare_compare_data()
 
     def render(self, container: ttk.Frame):
-        super().render(container)
         if not self._is_new:
-            self.reaction = self.instance.get_reaction(self.reaction.id)
+            def load_rea():
+                self.reaction = self.instance.get_reaction(self.reaction.id)
+                self.page_manager.root.after(0, self._render, container)
+            t = threading.Thread(target=load_rea)
+            t.daemon = True
+            t.start()
+        else:
+            self._render(container)
+
+    def _render(self, container: ttk.Frame):
+        super().render(container)
         outher_frame = tk.Frame(self.paned_window, bg="")
         left_frame = ScrollableFrame(outher_frame, relief=tk.SUNKEN, padding=5)
         left_frame.pack(side=tk.LEFT, fill="both", expand=True)

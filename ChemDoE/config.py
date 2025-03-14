@@ -3,6 +3,7 @@ import glob
 import json
 import os.path
 import shutil
+import subprocess
 import sys
 import uuid
 from pathlib import Path
@@ -20,6 +21,18 @@ script_dir = config_dir / "scripts"
 doe_dir = config_dir / "doe"
 config_path = config_dir / "config.ini"
 
+def _is_python_executable(file_path):
+    try:
+        # Ensure the file exists and is executable
+        if os.path.isfile(file_path) and os.access(file_path, os.X_OK):
+            result = subprocess.run([file_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode == 0:
+                version_output = result.stdout.decode('utf-8').strip()
+                if 'Python' in version_output:
+                    return True
+    except Exception as e:
+        print(f"Error: {e}")
+    return False
 
 class ConfigManager:
     _instance = None
@@ -218,7 +231,7 @@ class ConfigManager:
         interpreters.update(self.find_python_interpreters())
         interpreters.update(self.find_python_in_common_locations())
 
-        self.python_interpreters = list(interpreters)
+        self.python_interpreters = [x for x in list(interpreters) if _is_python_executable(x)]
         self.python_interpreters.sort(key=lambda x: len(x))
         if len(self.python_interpreters) == 0:
             from tkinter import messagebox

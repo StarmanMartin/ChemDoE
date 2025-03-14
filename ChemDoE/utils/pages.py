@@ -266,9 +266,22 @@ class ToolBarPage(Page):
         self.toolbar = ttk.Frame(toolbar, padding=0)
         self.toolbar.pack(side="left", padx=5)
 
+        self.loading_label = ttk.Label(self.toolbar, text="Loading...")
+        self.update_loading()
         logout_button = ttk.Button(toolbar, text="Logout", style="Logout.TButton", command=self._logout)
         logout_button.pack(side="right", padx=5)
         self.update_fav_dropdown()
+
+    def update_loading(self):
+
+        if threading.active_count() > 1:
+            text = self.loading_label.cget("text")
+            self.loading_label.config(text=text[-1] + text[:-1])
+            self.loading_label.pack(padx=5, pady=5)
+        else:
+            self.loading_label.pack_forget()
+
+        self.page_manager.root.after(100, self.update_loading)
 
     def update_fav_dropdown(self):
         def load():
