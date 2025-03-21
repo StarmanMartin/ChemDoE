@@ -5,6 +5,7 @@ from typing import Optional, Literal
 
 from chemotion_api import Reaction, Sample
 from chemotion_api.collection import Collection, RootCollection
+from chemotion_api.search.utils import EnumMatch, EnumConnector
 
 from ChemDoE.icons import IconManager
 from ChemDoE.utils.pages import ToolBarPage
@@ -29,7 +30,6 @@ class ElementTreePage(ToolBarPage):
 
             self.rea = rea
 
-
     class TreeElementCollection(TreeElement):
         def __init__(self, col: Collection | RootCollection):
             super().__init__(col.label)
@@ -43,10 +43,9 @@ class ElementTreePage(ToolBarPage):
         self._tree_structor = ElementTreePage.TreeElementCollection(self.instance.get_root_collection())
         self._tree_structor.tree_node = ""
         self._search_var = tk.StringVar()
-        self._collection_registry: dict[str, ElementTreePage.TreeElementCollection] = {}
+        self._collection_registry: dict[str, ElementTreePage.TreeElementCollection] = {str(self.instance.get_root_collection().id): self._tree_structor}
         self._search_task_id = None
         self._element_type = element_type
-
 
     def render(self, container: ttk.Frame):
         super().render(container)
@@ -85,14 +84,68 @@ class ElementTreePage(ToolBarPage):
     def _search_tree(self):
         if self._search_task_id is not None:
             self.page_manager.root.after_cancel(self._search_task_id)
-        self._search_task_id = self.page_manager.root.after(500, self._filter_tree)
+        self._search_task_id = self.page_manager.root.after(500, self._strat_filter_tree)
 
-    def _filter_tree(self, root = None, disable_detach:bool = False):
+    def _get_search_result_tree_item(self):
+        all_children = self.collection_tree.get_children()
+        if len(all_children) > 0:
+            first_node = self.collection_tree.get_children()[0]
+            vals = self.collection_tree.item(first_node, 'values')
+            if len(vals) == 2 and vals[1] == 'found':
+                return first_node
+        return self.collection_tree.insert("", 0, text="Search results", open=True, image=IconManager().FOUND_ICON,
+                                           values=(self.instance.get_root_collection().id, "found"))
+
+    def _strat_filter_tree(self):
+        self._filter_tree()
+        query = self._search_var.get()
+
+        if len(query) < 2:
+            tree_item = self._get_search_result_tree_item()
+            self.collection_tree.delete(tree_item)
+            return
+
+        def update_tree(results):
+
+            if self._element_type == 'Reaction':
+                icon = IconManager().REACTION_ICON
+            else:
+                icon = IconManager().SAMPLE_ICON
+
+            tree_item = self._get_search_result_tree_item()
+            if len(results) == 0:
+                self.collection_tree.delete(tree_item)
+                return
+
+            for child in self.collection_tree.get_children(tree_item):
+                self.collection_tree.delete(child)
+
+            for element in list(results):
+                re = ElementTreePage.TreeElementElement(element)
+                re.tree_node = self.collection_tree.insert(tree_item, "end", text=re.title, open=False,
+                                                           image=icon,
+                                                           values=(str(re.rea.id), "Element"))
+
+
+        def search_online():
+            if self._element_type == 'Reaction':
+                results = self.instance.search_reaction().add_search_condition(EnumMatch.LIKE, EnumConnector.OR, name=query, short_label=query).request()
+            elif self._element_type == 'Sample':
+                results = self.instance.search_sample().add_search_condition(EnumMatch.LIKE, EnumConnector.OR, name=query, short_label=query, external_label=query).request()
+            else:
+                results = []
+            self.page_manager.root.after(0, update_tree, results)
+
+
+        threading.Thread(target=search_online, daemon=True).start()
+
+    def _filter_tree(self, root=None, disable_detach: bool = False):
         """Filter treeview based on search input."""
         if root is None:
             root = self._tree_structor
         if isinstance(root, ElementTreePage.TreeElementElement):
             return False
+
         query = self._search_var.get().lower()
         if len(query) < 2:
             disable_detach = True
@@ -103,7 +156,7 @@ class ElementTreePage(ToolBarPage):
                 if disable_detach or match:
                     self._filter_tree(item, True)
                 res = True
-                try:# Check if query matches any column
+                try:  # Check if query matches any column
                     self.collection_tree.reattach(item.tree_node, root.tree_node, "end")  #
                 except tk.TclError:
                     pass
@@ -127,8 +180,8 @@ class ElementTreePage(ToolBarPage):
         ret = []
         for te in root_col.children:
             te.tree_node = self.collection_tree.insert(parent, "end", text=te.title, open=False,
-                                                  image=IconManager().FOLDER_ICON,
-                                                  values=(str(te.col.id), 'Collection'))
+                                                       image=IconManager().FOLDER_ICON,
+                                                       values=(str(te.col.id), 'Collection'))
             self._fill_tree(te, te.tree_node, filter_label)
 
             self.collection_tree.insert(te.tree_node, "end", text=f'Create new {self._element_type}', open=False,
@@ -137,7 +190,6 @@ class ElementTreePage(ToolBarPage):
             self._load_on_open(te.tree_node)
 
         return ret
-
 
     def _load_next_page(self, te: TreeElementCollection):
         try:
@@ -154,7 +206,8 @@ class ElementTreePage(ToolBarPage):
 
             if not self.is_visible:
                 return
-            self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title + " ⏳"), te)
+            self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title + " ⏳"),
+                                         te)
 
             end_length = min(all_elements, current_length + self.number_of_elements_per_page)
             for i in range(current_length, end_length):
@@ -162,22 +215,27 @@ class ElementTreePage(ToolBarPage):
                     return
                 re = ElementTreePage.TreeElementElement(elements[i])
                 te.elements.append(re)
+
                 def add_node(re, te):
                     if self.is_visible:
                         re.tree_node = self.collection_tree.insert(te.tree_node, "end", text=re.title, open=False,
-                                                image=icon,
-                                                values=(str(re.rea.id), "Element"))
+                                                                   image=icon,
+                                                                   values=(str(re.rea.id), "Element"))
+
                 self.page_manager.root.after(0, add_node, re, te)
 
             if self.is_visible:
-                self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title ), te)
+                self.page_manager.root.after(0, lambda te: self.collection_tree.item(te.tree_node, text=te.title), te)
             if len(te.elements) < all_elements:
-                self.page_manager.root.after(0, lambda te: self.collection_tree.insert(te.tree_node, "end", text="...Load more...", open=False, image=icon, values=(str(te.col.id), "LOAD")), te)
+                self.page_manager.root.after(0, lambda te: self.collection_tree.insert(te.tree_node, "end",
+                                                                                       text="...Load more...",
+                                                                                       open=False, image=icon,
+                                                                                       values=(str(te.col.id), "LOAD")),
+                                             te)
 
 
         except tk.TclError:
             return
-
 
     def _on_open(self, event):
         """Triggered when a tree item is opened (expanded)."""
@@ -212,7 +270,7 @@ class ElementTreePage(ToolBarPage):
             te: ElementTreePage.TreeElementCollection = self._collection_registry[vals[0]]
             self.create_new(te.col)
         elif vals[1] == 'Element':
-            if  hasattr(self, 'select_element'):
+            if hasattr(self, 'select_element'):
                 parent = self.collection_tree.parent(item)
                 col_id = self.collection_tree.item(parent, 'values')[0]
                 te: ElementTreePage.TreeElementCollection = self._collection_registry[col_id]
@@ -221,6 +279,6 @@ class ElementTreePage(ToolBarPage):
                 else:
                     element = self.instance.get_sample(int(vals[0]))
                 self.select_element(te.col, element)
-    
+
     def create_new(self, collection):
         pass

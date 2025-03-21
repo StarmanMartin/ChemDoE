@@ -61,6 +61,9 @@ class IconManager():
         _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/folder.svg.png')
         self.FOLDER_ICON = ImageTk.PhotoImage(Image.open(_icon_path).resize((16, 16)))
 
+        _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/search.png')
+        self.FOUND_ICON = ImageTk.PhotoImage(Image.open(_icon_path).resize((16, 16)))
+
         _icon_path = os.path.join(os.path.dirname(__file__), 'fixed/flask.svg.png')
         self.REACTION_ICON = ImageTk.PhotoImage(Image.open(_icon_path).resize((14, 14)))
 
